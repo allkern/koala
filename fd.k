@@ -1,0 +1,1 @@
+fn main(u32 a0, const static u8* b0) -> const short*
