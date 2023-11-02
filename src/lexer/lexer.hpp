@@ -45,6 +45,7 @@ namespace koala {
     };
 
     enum : int {
+        TK_EOF = -2,
         TK_ERROR = -1,
         TK_NONE,
         TK_IDENT,
@@ -60,7 +61,9 @@ namespace koala {
         TK_SEMICOLON,
         TK_COMMA,
         TK_ARROW,
-        TK_OPERATOR,
+        TK_ASSIGNMENT_OPERATOR,
+        TK_BINARY_OPERATOR,
+        TK_UNARY_OPERATOR,
         TK_KEYWORD_FN,
         TK_KEYWORD_CONST,
         TK_KEYWORD_STATIC,

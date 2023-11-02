@@ -101,12 +101,23 @@ int koala::lexer::lex_separator() {
     return TK_NONE;
 }
 
+#define DIGRAPH(str, type)                  \
+    case str[0]: {                          \
+        next();                             \
+        if (m_c == str[1]) {                \
+            next();                         \
+            push_token(type).text = str;    \
+        } else {                            \
+            push_token(type).text = str[0]; \
+        }                                   \
+        return type;                        \
+    } break;
+
 int koala::lexer::lex_operator() {
     // To-do: Handle all operators, including digraphs
     switch (m_c) {
-        case '=': next(); push_token(TK_OPERATOR).text = "="; return TK_OPERATOR;
-        case '+': next(); push_token(TK_OPERATOR).text = "+"; return TK_OPERATOR;
-        case '*': next(); push_token(TK_OPERATOR).text = "*"; return TK_OPERATOR;
+        DIGRAPH("==", TK_ASSIGNMENT_OPERATOR);
+        DIGRAPH("!=", TK_ASSIGNMENT_OPERATOR);
     }
 
     return TK_NONE;
@@ -165,7 +176,7 @@ void koala::lexer::lex() {
 
 koala::lexer_token koala::lexer::pop() {
     if (m_output.empty())
-        return {};
+        return { m_loc, TK_EOF, "<eof>" };
 
     lexer_token tk = m_output.front();
 

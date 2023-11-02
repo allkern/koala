@@ -41,24 +41,14 @@ bool koala::parser::expect(int token) {
 void koala::parser::parse() {
     m_current = m_lexer->pop();
 
-    while (!m_lexer->empty()) {
-        statement* stmt = nullptr;
+    while (m_current.type != TK_EOF) {
+        std::cout << parse_expression()->print(0) << std::endl;
 
-        switch (m_current.type) {
-            case TK_KEYWORD_FN: stmt = parse_function_def(); break;
-            case TK_KEYWORD_CONST: case TK_KEYWORD_STATIC: case TK_KEYWORD_MUT: {
-                stmt = parse_variable_def();
-            } break;
+        printf("-----------------------------------\n");
 
-            case TK_IDENT: {
-                if (m_ts.is_type(m_current.text)) {
-                    stmt = parse_variable_def();
-                } else {
-                    printf("Call, assignment, etc.");
+        // m_ast.push_back(parse_statement());
 
-                    std::exit(1);
-                }
-            } break;
-        }
+        // if (!m_ast.front())
+        //     std::exit(1);
     }
 }

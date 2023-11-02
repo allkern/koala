@@ -7,9 +7,11 @@
 #include "../lexer/lexer.hpp"
 #include "type_system.hpp"
 #include "expression.hpp"
+#include "expressions/unary_expr.hpp"
+#include "expressions/binary_expr.hpp"
+#include "expressions/integer_expr.hpp"
 #include "statement.hpp"
-#include "statements/function_def.hpp"
-#include "statements/variable_def.hpp"
+
 #include "common.hpp"
 
 namespace koala {
@@ -21,7 +23,10 @@ namespace koala {
 
         bool expect(int token);
         type_signature parse_type();
+        expression* parse_primary();
         expression* parse_expression();
+        expression* parse_expression_impl(expression* lhs, int mp);
+        statement* parse_statement();
         statement* parse_function_def();
         statement* parse_variable_def();
     

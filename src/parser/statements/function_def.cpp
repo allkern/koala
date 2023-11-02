@@ -52,6 +52,13 @@ koala::statement* koala::parser::parse_function_def() {
 
     fd.return_type = m_ts.get_type(parse_type());
 
+    if (!expect(TK_COLON))
+        return nullptr;
+
+    m_current = m_lexer->pop();
+
+    fd.body = parse_expression();
+
     printf("function-def %s -> %s args:\n",
         fd.name.c_str(),
         get_signature_string(fd.return_type->sig).c_str()
@@ -63,6 +70,10 @@ koala::statement* koala::parser::parse_function_def() {
             get_signature_string(v.type->sig).c_str()
         );
     }
+
+    printf("body: %s",
+        fd.body->print(0).c_str()
+    );
 
     return new function_def(fd);
 }
