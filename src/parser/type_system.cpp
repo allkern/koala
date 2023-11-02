@@ -17,24 +17,39 @@ koala::type* koala::type_system::get_type(type_signature sig) {
         std::exit(1);
     }
 
-    type* type = get_type(type_signature(sig.base));
+    type* nty = nullptr;
+    type* bty = get_type(type_signature(sig.base));
 
-    type->is_mut = sig.is_mut;
-    type->is_static = sig.is_static;
+    switch (bty->get_type()) {
+        case TP_INTEGRAL: {
+            integral_type* it = (integral_type*)bty;
+
+            nty = new integral_type(*it);
+        } break;
+
+        case TP_POINTER: {
+            pointer_type* pt = (pointer_type*)bty;
+
+            nty = new pointer_type(*pt);
+        } break;
+    }
+
+    nty->is_mut = sig.is_mut;
+    nty->is_static = sig.is_static;
 
     int pointer_rank = sig.pointer_rank;
 
     while (pointer_rank) {
-        type = new pointer_type(sig, type);
+        nty = new pointer_type(sig, nty);
 
         pointer_rank--;
     }
 
-    type->sig = sig;
+    nty->sig = sig;
 
-    m_type_map[sig_str] = type;
+    m_type_map[sig_str] = nty;
 
-    return type;
+    return nty;
 }
 
 bool koala::type_system::is_equal(type* t, type* u) {
@@ -47,6 +62,9 @@ bool koala::type_system::is_comparable(type* t, type* u) {
 
 koala::type_signature koala::parser::parse_type() {
     type_signature sig;
+
+    sig.is_mut = false;
+    sig.is_static = false;
 
     while (true) {
         switch (m_current.type) {

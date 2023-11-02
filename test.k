@@ -1,14 +1,10 @@
-fn main(int x, int y) -> int {
-    int a = x / y;
-    int b = a + 2 * 3;
-    int c = a << b & 1;
+fn main() -> int {
+    int a = 30;
+    int b = 2;
 
-    a <<= 4;
+    a = a++;
+    a = a++;
+    a = a++;
 
-    strcpy(a, 2 * b + 2 * c);
-}
-
-fn strcpy(char* dst, char* src) -> char* {
-    static const char* temp = 10;
-    mut int a = 10;
+    print(a);
 }

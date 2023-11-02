@@ -12,6 +12,10 @@
 #include "expressions/name_ref.hpp"
 #include "expressions/unary_op.hpp"
 #include "statement.hpp"
+#include "statements/assignment.hpp"
+#include "statements/function_def.hpp"
+#include "statements/function_call.hpp"
+#include "statements/variable_def.hpp"
 
 #include "common.hpp"
 
@@ -38,5 +42,8 @@ namespace koala {
             m_lexer(&lexer) {};
         
         void parse();
+        std::vector <statement*>& get_ast();
+
+        void execute_function(std::string name);
     };
 }

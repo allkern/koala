@@ -1,5 +1,7 @@
 #include "lexer/lexer.hpp"
 #include "parser/parser.hpp"
+#include "parser/statement.hpp"
+#include "parser/statements/function_def.hpp"
 
 #include <fstream>
 
@@ -17,4 +19,6 @@ int main(int argc, const char* argv[]) {
 
     lexer.lex();
     parser.parse();
+
+    parser.execute_function("main");
 }
