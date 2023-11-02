@@ -6,8 +6,8 @@ std::string koala::get_signature_string(type_signature sig) {
     if (sig.is_static)
         str.append("static ");
 
-    if (sig.is_const)
-        str.append("const ");
+    if (sig.is_mut)
+        str.append("mut ");
     
     str.append(sig.base);
 

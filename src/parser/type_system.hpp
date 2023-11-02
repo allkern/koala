@@ -18,11 +18,11 @@ namespace koala {
     public:
         type_signature sig;
         int size;
-        bool is_const;
+        bool is_mut;
         bool is_static;
 
-        type(type_signature sig, int size, bool is_const, bool is_static) :
-            sig(sig), size(size), is_const(is_const), is_static(is_static) {};
+        type(type_signature sig, int size, bool is_mut, bool is_static) :
+            sig(sig), size(size), is_mut(is_mut), is_static(is_static) {};
 
         virtual int get_type() = 0;
     };

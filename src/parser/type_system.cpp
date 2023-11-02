@@ -19,7 +19,7 @@ koala::type* koala::type_system::get_type(type_signature sig) {
 
     type* type = get_type(type_signature(sig.base));
 
-    type->is_const = sig.is_const;
+    type->is_mut = sig.is_mut;
     type->is_static = sig.is_static;
 
     int pointer_rank = sig.pointer_rank;
@@ -71,13 +71,13 @@ koala::type_signature koala::parser::parse_type() {
             } break;
 
             case TK_KEYWORD_MUT: {
-                sig.is_const = false;
+                sig.is_mut = true;
 
                 m_current = m_lexer->pop();
             } break;
 
             case TK_KEYWORD_CONST: {
-                sig.is_const = true;
+                sig.is_mut = false;
 
                 m_current = m_lexer->pop();
             } break;

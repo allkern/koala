@@ -10,4 +10,5 @@ fn main(int x, int y) -> int {
 
 fn strcpy(char* dst, char* src) -> char* {
     static const char* temp = 10;
+    mut int a = 10;
 }
