@@ -1,12 +1,14 @@
 #pragma once
 
+#include "type_system.hpp"
 #include "../common.hpp"
 
 namespace koala {
     enum : int {
-        EX_INTEGER,
+        EX_INTEGER_CONSTANT,
         EX_UNARY_OP,
-        EX_BINARY_OP
+        EX_BINARY_OP,
+        EX_NAME_REF,
     };
 
     class expression {
@@ -18,6 +20,6 @@ namespace koala {
         }
 
         virtual std::string print(int hierarchy) = 0;
-        virtual int get_type() = 0;
+        virtual int get_tag() = 0;
     };
 }

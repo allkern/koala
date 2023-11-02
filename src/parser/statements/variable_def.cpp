@@ -16,20 +16,13 @@ koala::statement* koala::parser::parse_variable_def() {
 
     m_current = m_lexer->pop();
 
-    if (m_current.type == TK_OPERATOR) {
+    if (m_current.type == TK_ASSIGNMENT_OPERATOR) {
+        vd.assignment_op = m_current.text;
+
         m_current = m_lexer->pop();
-
-        printf("variable def with init\n");
-
-        std::exit(1);
 
         vd.init = parse_expression();
     }
-
-    printf("variable-def %s -> %s\n",
-        vd.name.c_str(),
-        get_signature_string(vd.type->sig).c_str()
-    );
 
     return new variable_def(vd);
 }

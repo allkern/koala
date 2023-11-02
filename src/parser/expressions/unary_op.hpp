@@ -8,16 +8,16 @@
 #include <vector>
 
 namespace koala {
-    class unary_expr : public expression {
+    class unary_op : public expression {
     public:
         std::string op;
         expression* expr;
 
-        std::string print(int hierarchy) {
+        std::string print(int hierarchy) override {
             return "(" + op + " " + expr->print(0) + ")";
         }
 
-        int get_type() override {
+        int get_tag() override {
             return EX_UNARY_OP;
         }
     };

@@ -8,16 +8,16 @@
 #include <vector>
 
 namespace koala {
-    class integer_expr : public expression {
+    class integer_constant : public expression {
     public:
         std::string value;
 
-        std::string print(int hierarchy) {
-            return "(" + value + ")";
+        std::string print(int hierarchy) override {
+            return value;
         }
 
-        int get_type() override {
-            return EX_INTEGER;
+        int get_tag() override {
+            return EX_INTEGER_CONSTANT;
         }
     };
 }

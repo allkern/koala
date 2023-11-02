@@ -12,11 +12,13 @@ const char* g_readable_token_names[] = {
     ")",
     "}",
     "]",
-    ",",
+    ":",
     ";",
     ",",
     "->",
-    "operator",
+    "assignment-operator",
+    "binary-operator",
+    "unary-operator",
     "fn",
     "const",
     "static",
@@ -42,13 +44,9 @@ void koala::parser::parse() {
     m_current = m_lexer->pop();
 
     while (m_current.type != TK_EOF) {
-        std::cout << parse_expression()->print(0) << std::endl;
-
-        printf("-----------------------------------\n");
-
-        // m_ast.push_back(parse_statement());
-
-        // if (!m_ast.front())
-        //     std::exit(1);
+        m_ast.push_back(parse_statement());
     }
+
+    for (statement* s : m_ast)
+        std::cout << s->print(0) << std::endl;
 }

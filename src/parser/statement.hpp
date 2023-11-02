@@ -6,7 +6,9 @@ namespace koala {
     enum : int {
         ST_FUNCTION_DEF = 0,
         ST_VARIABLE_DEF,
-        ST_STRUCT_DEF
+        ST_STRUCT_DEF,
+        ST_ASSIGNMENT,
+        ST_FUNCTION_CALL
     };
 
     class statement {
@@ -17,6 +19,7 @@ namespace koala {
             return m_loc;
         }
 
-        virtual int get_type() = 0;
+        virtual int get_tag() = 0;
+        virtual std::string print(int hierarchy) = 0;
     };
 }

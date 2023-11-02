@@ -8,7 +8,7 @@ std::unordered_map <std::string, int> g_ident_keyword_map = {
     { "fn"      , koala::TK_KEYWORD_FN },
     { "const"   , koala::TK_KEYWORD_CONST },
     { "static"  , koala::TK_KEYWORD_STATIC },
-    { "mut"  , koala::TK_KEYWORD_MUT },
+    { "mut"     , koala::TK_KEYWORD_MUT },
 };
 
 const char* g_token_names[] = {
@@ -26,7 +26,9 @@ const char* g_token_names[] = {
     "TK_SEMICOLON",
     "TK_COMMA",
     "TK_ARROW",
-    "TK_OPERATOR",
+    "TK_ASSIGNMENT_OPERATOR",
+    "TK_BINARY_OPERATOR",
+    "TK_UNARY_OPERATOR",
     "TK_KEYWORD_FN",
     "TK_KEYWORD_CONST",
     "TK_KEYWORD_STATIC",
@@ -101,26 +103,78 @@ int koala::lexer::lex_separator() {
     return TK_NONE;
 }
 
-#define DIGRAPH(str, type)                  \
-    case str[0]: {                          \
-        next();                             \
-        if (m_c == str[1]) {                \
-            next();                         \
-            push_token(type).text = str;    \
-        } else {                            \
-            push_token(type).text = str[0]; \
-        }                                   \
-        return type;                        \
-    } break;
+bool isop(char c) {
+    return (c == '+') || (c == '-') || (c == '*') || (c == '/') ||
+           (c == '%') || (c == '&') || (c == '|') || (c == '^') ||
+           (c == '!') || (c == '<') || (c == '>') || (c == '~') ||
+           (c == '=');
+}
+
+std::unordered_map <std::string, int> g_operator_type_map = {
+    { "="  , koala::TK_ASSIGNMENT_OPERATOR },
+    { "+=" , koala::TK_ASSIGNMENT_OPERATOR },
+    { "-=" , koala::TK_ASSIGNMENT_OPERATOR },
+    { "*=" , koala::TK_ASSIGNMENT_OPERATOR },
+    { "/=" , koala::TK_ASSIGNMENT_OPERATOR },
+    { "&=" , koala::TK_ASSIGNMENT_OPERATOR },
+    { "|=" , koala::TK_ASSIGNMENT_OPERATOR },
+    { "^=" , koala::TK_ASSIGNMENT_OPERATOR },
+    { "<<=", koala::TK_ASSIGNMENT_OPERATOR },
+    { ">>=", koala::TK_ASSIGNMENT_OPERATOR },
+    { "==" , koala::TK_BINARY_OPERATOR },
+    { "!=" , koala::TK_BINARY_OPERATOR },
+    { "<=" , koala::TK_BINARY_OPERATOR },
+    { ">=" , koala::TK_BINARY_OPERATOR },
+    { "&&" , koala::TK_BINARY_OPERATOR },
+    { "||" , koala::TK_BINARY_OPERATOR },
+    { "^^" , koala::TK_BINARY_OPERATOR },
+    { "!"  , koala::TK_UNARY_OPERATOR },
+    { "+"  , koala::TK_BINARY_OPERATOR },
+    { "-"  , koala::TK_BINARY_OPERATOR },
+    { "*"  , koala::TK_BINARY_OPERATOR },
+    { "/"  , koala::TK_BINARY_OPERATOR },
+    { "%"  , koala::TK_BINARY_OPERATOR },
+    { "&"  , koala::TK_BINARY_OPERATOR },
+    { "!&" , koala::TK_BINARY_OPERATOR },
+    { "|"  , koala::TK_BINARY_OPERATOR },
+    { "!|" , koala::TK_BINARY_OPERATOR },
+    { "^"  , koala::TK_BINARY_OPERATOR },
+    { "!^" , koala::TK_BINARY_OPERATOR },
+    { "<<" , koala::TK_BINARY_OPERATOR },
+    { ">>" , koala::TK_BINARY_OPERATOR },
+    { "++" , koala::TK_UNARY_OPERATOR },
+    { "--" , koala::TK_UNARY_OPERATOR },
+    { "~"  , koala::TK_UNARY_OPERATOR }
+};
 
 int koala::lexer::lex_operator() {
-    // To-do: Handle all operators, including digraphs
-    switch (m_c) {
-        DIGRAPH("==", TK_ASSIGNMENT_OPERATOR);
-        DIGRAPH("!=", TK_ASSIGNMENT_OPERATOR);
+    if (!isop(m_c))
+        return TK_NONE;
+
+    std::string op;
+
+    while (isop(m_c))
+        op.push_back(next());
+    
+    if (!g_operator_type_map.contains(op)) {
+        int type = 0;
+
+        for (char c : op) {
+            std::string sop = std::string(1, c);
+
+            type = g_operator_type_map[sop];
+
+            push_token(type).text = sop;
+        }
+
+        return type;
     }
 
-    return TK_NONE;
+    int type = g_operator_type_map[op];
+    
+    push_token(type).text = op;
+
+    return type;
 }
 
 int koala::lexer::lex_literal() {
@@ -162,15 +216,18 @@ void koala::lexer::lex() {
         if (lex_literal()) goto lexed;
         if (lex_string()) goto lexed;
 
-        std::cout << "Unknown token at line " << m_output.back().loc.row << std::endl;
+        printf("Unknown token at line %u col %u\n",
+            m_output.back().loc.row + 1,
+            m_output.back().loc.column + 1
+        );
 
-        continue;
+        std::exit(1);
 
         lexed:
 
         continue;
-
-        //std::cout << g_token_names[m_output.back().type] << " (" << m_output.back().text << ")" << std::endl;
+        
+        // std::cout << g_token_names[m_output.back().type] << " (" << m_output.back().text << ")" << std::endl;
     }
 }
 

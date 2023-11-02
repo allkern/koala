@@ -45,7 +45,6 @@ bool koala::type_system::is_comparable(type* t, type* u) {
     return false;
 }
 
-
 koala::type_signature koala::parser::parse_type() {
     type_signature sig;
 

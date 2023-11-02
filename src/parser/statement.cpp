@@ -19,10 +19,28 @@ koala::statement* koala::parser::parse_statement() {
         case TK_IDENT: {
             if (m_ts.is_type(m_current.text)) {
                 stmt = parse_variable_def();
-            } else {
-                printf("Call, assignment, etc.");
 
-                std::exit(1);
+                break;
+            }
+
+            std::string name = m_current.text;
+
+            m_current = m_lexer->pop();
+
+            switch (m_current.type) {
+                case TK_ASSIGNMENT_OPERATOR: {
+                    stmt = parse_assignment(name);
+                } break;
+
+                case TK_OPENING_PARENT: {
+                    stmt = parse_function_call(name);
+                } break;
+
+                default: {
+                    printf("Expected an assignment or call\n");
+
+                    std::exit(1);
+                } break;
             }
         } break;
     }

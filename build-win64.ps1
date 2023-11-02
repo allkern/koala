@@ -13,5 +13,5 @@ c++ -I"`"$($KOALA_DIR)`"" `
     "src\lexer\*.cpp" `
     "src\parser\*.cpp" `
     "src\parser\statements\*.cpp" `
-    "src\parser\expressions\*.cpp" `
     -o "bin\koala.exe" -std=c++20 -Ofast -g
+    # "src\parser\expressions\*.cpp" `

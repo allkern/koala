@@ -24,10 +24,10 @@ parse_expression_1(lhs, min_precedence)
 */
 
 std::unordered_map <std::string, int> g_operator_precedence_map = {
-    { "*" , 10 }, { "%" , 10 },
+    { "*" , 10 }, { "%" , 10 }, { "/" , 10 },
     { "+" , 9  }, { "-" , 9  },
     { "<<", 8  }, { ">>", 8  },
-    { "<" , 7  }, { "<=", 7  }, { ">" , 7 }, { ">=", 7 },
+    { "<" , 7  }, { "<=", 7  }, { ">" , 7  }, { ">=", 7 },
     { "==", 6  }, { "!=", 6  },
     { "&" , 5  },
     { "^" , 4  },
@@ -55,8 +55,8 @@ koala::expression* koala::parser::parse_primary() {
             m_current = m_lexer->pop();
         } break;
 
-        case TK_OPERATOR: {
-            unary_expr ue;
+        case TK_UNARY_OPERATOR: {
+            unary_op ue;
 
             ue.op = m_current.text;
 
@@ -64,18 +64,64 @@ koala::expression* koala::parser::parse_primary() {
 
             ue.expr = parse_primary();
 
-            expr = new unary_expr(ue);
+            expr = new unary_op(ue);
+        } break;
+
+        case TK_BINARY_OPERATOR: {
+            if (m_current.text != "-") {
+                printf("Expected unary operator, got \'%s\'\n", m_current.text.c_str());
+
+                std::exit(1);
+            }
+
+            unary_op ue;
+
+            ue.op = m_current.text;
+
+            m_current = m_lexer->pop();
+
+            ue.expr = parse_primary();
+
+            expr = new unary_op(ue);
         } break;
 
         case TK_INTEGER: {
-            integer_expr ie;
+            integer_constant ie;
 
             ie.value = m_current.text;
 
             m_current = m_lexer->pop();
 
-            expr = new integer_expr(ie);
+            expr = new integer_constant(ie);
         } break;
+
+        case TK_IDENT: {
+            if (m_ts.is_type(m_current.text)) {
+                printf("Name reference names a type\n");
+
+                std::exit(1);
+            }
+
+            name_ref nr;
+
+            nr.name = m_current.text;
+            
+            m_current = m_lexer->pop();
+
+            expr = new name_ref(nr);
+        }
+    }
+
+    if (m_current.type == TK_UNARY_OPERATOR) {
+        unary_op ue;
+
+        ue.op = m_current.text;
+
+        m_current = m_lexer->pop();
+
+        ue.expr = expr;
+
+        expr = new unary_op(ue);
     }
 
     return expr;
@@ -88,7 +134,7 @@ koala::expression* koala::parser::parse_expression() {
 koala::expression* koala::parser::parse_expression_impl(expression* lhs, int mp) {
     int p = g_operator_precedence_map[m_current.text];
 
-    while ((m_current.type == TK_OPERATOR) && (p >= mp)) {
+    while ((m_current.type == TK_BINARY_OPERATOR) && (p >= mp)) {
         std::string op = m_current.text;
 
         m_current = m_lexer->pop();
@@ -99,118 +145,20 @@ koala::expression* koala::parser::parse_expression_impl(expression* lhs, int mp)
 
         int q = g_operator_precedence_map[op];
 
-        while ((m_current.type == TK_OPERATOR) && (p >= q)) {
+        while ((m_current.type == TK_BINARY_OPERATOR) && (p >= q)) {
             rhs = parse_expression_impl(rhs, p + (q > p));
 
             p = g_operator_precedence_map[m_current.text];
         }
 
-        binary_expr be;
+        binary_op be;
 
         be.left = lhs;
         be.right = rhs;
         be.op = op;
 
-        lhs = new binary_expr(be);
+        lhs = new binary_op(be);
     }
 
     return lhs;
 }
-
-// koala::expression* koala::parser::parse_expression() {
-//     if (m_current.type == TK_OPENING_PARENT) {
-//         m_current = m_lexer->pop();
-
-//         // printf("Found opening parent, recursing...\n");
-//         expression* expr = parse_expression();
-
-//         if (m_current.type != TK_CLOSING_PARENT) {
-//             printf("Expected \')\'");
-
-//             std::exit(1);
-//         }
-
-//         // printf("Found closing parent\n");
-
-//         m_current = m_lexer->pop();
-
-//         // Handle binary operator
-//         if (m_current.type == TK_OPERATOR) {
-//             binary_expr be;
-
-//             be.op = m_current.text;
-//             be.left = expr;
-
-//             m_current = m_lexer->pop();
-
-//             // printf("Found post operator after closing parent, recursing...\n");
-//             be.right = parse_expression();
-
-//             return new binary_expr(be);
-//         }
-
-//         return expr;
-//     }
-
-//     // Handle pre operator
-//     if (m_current.type == TK_OPERATOR) {
-//         unary_expr ue;
-
-//         ue.op = m_current.text;
-
-//         m_current = m_lexer->pop();
-
-//         // printf("Found pre operator, recursing...\n");
-//         ue.expr = parse_expression();
-
-//         expression* expr = new unary_expr(ue);
-
-//         // Handle post operator
-//         if (m_current.type == TK_OPERATOR) {
-//             binary_expr be;
-
-//             be.op = m_current.text;
-//             be.left = expr;
-
-//             m_current = m_lexer->pop();
-
-//             // printf("Found post operator after unary op expression, recursing...\n");
-//             be.right = parse_expression();
-
-//             return new binary_expr(be);
-//         }
-
-//         return expr;
-//     }
-
-//     // printf("Not found pre operator or opening parent, parsing leaf\n");
-
-//     expression* expr = nullptr;
-
-//     switch (m_current.type) {
-//         case TK_INTEGER: {
-//             // printf("Found integer\n");
-
-//             expr = parse_integer_expr();
-//         } break;
-//     }
-
-//     // Handle post operator
-//     if (m_current.type == TK_OPERATOR) {
-//         binary_expr be;
-
-//         be.op = m_current.text;
-//         be.left = expr;
-
-//         m_current = m_lexer->pop();
-
-//         // printf("Found post operator, recursing...\n");
-//         be.right = parse_expression();
-
-//         return new binary_expr(be);
-//     }
-
-//     // printf("Done parsing leaf\n");
-
-//     return expr;
-// }

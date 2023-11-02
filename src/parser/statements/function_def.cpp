@@ -52,28 +52,24 @@ koala::statement* koala::parser::parse_function_def() {
 
     fd.return_type = m_ts.get_type(parse_type());
 
-    if (!expect(TK_COLON))
+    if (m_current.type != TK_OPENING_BRACE)
         return nullptr;
 
     m_current = m_lexer->pop();
 
-    fd.body = parse_expression();
+    while (m_current.type != TK_CLOSING_BRACE) {
+        fd.body.push_back(parse_statement());
 
-    printf("function-def %s -> %s args:\n",
-        fd.name.c_str(),
-        get_signature_string(fd.return_type->sig).c_str()
-    );
+        if (m_current.type != TK_SEMICOLON) {
+            printf("Expected \';\' after statement");
 
-    for (variable_info& v : fd.args) {
-        printf("    %s -> %s\n",
-            v.name.c_str(),
-            get_signature_string(v.type->sig).c_str()
-        );
+            std::exit(1);
+        }
+
+        m_current = m_lexer->pop();
     }
 
-    printf("body: %s",
-        fd.body->print(0).c_str()
-    );
+    m_current = m_lexer->pop();
 
     return new function_def(fd);
 }
