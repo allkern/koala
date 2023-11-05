@@ -1,6 +1,5 @@
 #pragma once
 
-#include "../type_signature.hpp"
 #include "../statement.hpp"
 #include "../expression.hpp"
 #include "../parser.hpp"

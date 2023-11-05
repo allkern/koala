@@ -205,7 +205,30 @@ void koala::parser::execute_function(std::string name) {
             case ST_ASSIGNMENT: {
                 assignment* a = (assignment*)s;
 
-                lookup_var(a->dest, vars).value = evaluate_expression(a->src, vars);
+                uint32_t& v = lookup_var(a->dest, vars).value;
+                uint32_t e = evaluate_expression(a->src, vars);
+
+                if (a->op == "=") {
+                    v = e;
+                } else if (a->op == "+=") {
+                    v += e;
+                } else if (a->op == "-=") {
+                    v -= e;
+                } else if (a->op == "*=") {
+                    v *= e;
+                } else if (a->op == "/=") {
+                    v /= e;
+                } else if (a->op == "&=") {
+                    v &= e;
+                } else if (a->op == "|=") {
+                    v |= e;
+                } else if (a->op == "^=") {
+                    v ^= e;
+                } else if (a->op == "<<=") {
+                    v <<= e;
+                } else if (a->op == ">>=") {
+                    v >>= e;
+                }
             } break;
 
             case ST_FUNCTION_CALL: {
@@ -221,3 +244,31 @@ void koala::parser::execute_function(std::string name) {
         }
     }
 }
+
+
+// koala::type* koala::parser::get_type(expression* e) {
+//     if (e->type)
+//         return e->type;
+
+//     switch (e->get_tag()) {
+//         case EX_INTEGER_CONSTANT: {
+//             integer_constant* ic = (integer_constant*)e;
+
+//             uint32_t value = std::atoi(ic->value.c_str());
+
+//             if (value & 0xffff0000) {
+//                 ic->type = m_ts.get_type(type_signature("u32"));
+//             } else if (value & 0xff00) {
+//                 ic->type = m_ts.get_type(type_signature("u16"));
+//             } else {
+//                 ic->type = m_ts.get_type(type_signature("u8"));
+//             }
+//         } break;
+
+//         case EX_BINARY_OP: {
+//             binary_op* bo = (binary_op*)e;
+
+//             return bo->type;
+//         } break;
+//     }
+// }

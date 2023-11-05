@@ -67,6 +67,8 @@ namespace koala {
         TK_KEYWORD_FN,
         TK_KEYWORD_CONST,
         TK_KEYWORD_STATIC,
-        TK_KEYWORD_MUT
+        TK_KEYWORD_MUT,
+        TK_KEYWORD_LET,
+        TK_KEYWORD_TYPEOF
     };
 }

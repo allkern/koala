@@ -12,17 +12,12 @@ koala::statement* koala::parser::parse_statement() {
             stmt = parse_function_def();
         } break;
 
-        case TK_KEYWORD_CONST: case TK_KEYWORD_STATIC: case TK_KEYWORD_MUT: {
+        case TK_KEYWORD_CONST: case TK_KEYWORD_STATIC: case TK_KEYWORD_MUT:
+        case TK_KEYWORD_LET: {
             stmt = parse_variable_def();
         } break;
 
         case TK_IDENT: {
-            if (m_ts.is_type(m_current.text)) {
-                stmt = parse_variable_def();
-
-                break;
-            }
-
             std::string name = m_current.text;
 
             m_current = m_lexer->pop();

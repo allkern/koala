@@ -19,6 +19,8 @@ namespace koala {
             return m_loc;
         }
 
+        type* type = nullptr;
+
         virtual std::string print(int hierarchy) = 0;
         virtual int get_tag() = 0;
     };

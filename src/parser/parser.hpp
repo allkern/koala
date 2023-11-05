@@ -3,6 +3,7 @@
 #include <vector>
 #include <string>
 #include <unordered_map>
+#include <stack>
 
 #include "../lexer/lexer.hpp"
 #include "type_system.hpp"
@@ -27,7 +28,7 @@ namespace koala {
         lexer_token              m_current;
 
         bool expect(int token);
-        type_signature parse_type();
+        type* parse_type();
         expression* parse_primary();
         expression* parse_expression();
         expression* parse_expression_impl(expression* lhs, int mp);
@@ -43,7 +44,12 @@ namespace koala {
         
         void parse();
         std::vector <statement*>& get_ast();
-
         void execute_function(std::string name);
+    };
+
+    struct symbol {
+        std::string name;
+
+        type* type;
     };
 }

@@ -6,9 +6,6 @@
 #include <fstream>
 
 int main(int argc, const char* argv[]) {
-    std::istream* input;
-    std::ostream* output;
-
     std::ifstream file;
     std::string path = argv[1];
 

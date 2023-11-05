@@ -1,10 +1,3 @@
-fn main() -> int {
-    int a = 30;
-    int b = 2;
-
-    a = a++;
-    a = a++;
-    a = a++;
-
-    print(a);
+fn main(a: int, b: u32*) -> int {
+    let s : { (() -> int)*, int* }* = 10;
 }

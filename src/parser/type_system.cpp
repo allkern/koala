@@ -1,55 +1,33 @@
 #include "type_system.hpp"
 #include "parser.hpp"
 
-bool koala::type_system::is_type(std::string ident) {
-    return m_type_map.contains(get_signature_string(type_signature(ident)));
+koala::type* koala::type_system::add_type(type* t) {
+    std::string sig = t->str();
+
+    type* u = get_type(sig);
+
+    if (u) {
+        // This happens only when the type is a plain type
+        // (e.g. int), this causes get_type to return
+        // a pointer that's already on the type map.
+        // Which is then checked again for addition later
+        // and deleted because it already exists.
+        if (t != u)
+            delete t;
+
+        return u;
+    }
+
+    m_type_map[sig] = t;
+
+    return t;
 }
 
-koala::type* koala::type_system::get_type(type_signature sig) {
-    std::string sig_str = get_signature_string(sig);
+koala::type* koala::type_system::get_type(std::string sig) {
+    if (m_type_map.contains(sig))
+        return m_type_map[sig];
 
-    if (m_type_map.contains(sig_str))
-        return m_type_map[sig_str];
-    
-    if (!is_type(sig.base)) {
-        printf("Base type does not name a type\n");
-
-        std::exit(1);
-    }
-
-    type* nty = nullptr;
-    type* bty = get_type(type_signature(sig.base));
-
-    switch (bty->get_type()) {
-        case TP_INTEGRAL: {
-            integral_type* it = (integral_type*)bty;
-
-            nty = new integral_type(*it);
-        } break;
-
-        case TP_POINTER: {
-            pointer_type* pt = (pointer_type*)bty;
-
-            nty = new pointer_type(*pt);
-        } break;
-    }
-
-    nty->is_mut = sig.is_mut;
-    nty->is_static = sig.is_static;
-
-    int pointer_rank = sig.pointer_rank;
-
-    while (pointer_rank) {
-        nty = new pointer_type(sig, nty);
-
-        pointer_rank--;
-    }
-
-    nty->sig = sig;
-
-    m_type_map[sig_str] = nty;
-
-    return nty;
+    return nullptr;
 }
 
 bool koala::type_system::is_equal(type* t, type* u) {
@@ -60,57 +38,88 @@ bool koala::type_system::is_comparable(type* t, type* u) {
     return false;
 }
 
-koala::type_signature koala::parser::parse_type() {
-    type_signature sig;
+koala::type* koala::parser::parse_type() {
+    type* type;
 
-    sig.is_mut = false;
-    sig.is_static = false;
+    switch (m_current.type) {
+        case TK_IDENT: {
+            type = m_ts.get_type(m_current.text);
 
-    while (true) {
-        switch (m_current.type) {
-            case TK_IDENT: {
-                if (!m_ts.is_type(m_current.text)) {
-                    printf("Base type does not name a type\n");
+            if (!type) {
+                printf("\'%s\' does not name a type", m_current.text.c_str());
 
-                    std::exit(1);
-                }
+                std::exit(0);
+            }
 
-                sig.base = m_current.text;
+            m_current = m_lexer->pop();
+        } break;
 
-                m_current = m_lexer->pop();
+        case TK_OPENING_PARENT: {
+            function_type* ft = new function_type();
 
-                while (m_current.text == "*") {
-                    ++sig.pointer_rank;
+            m_current = m_lexer->pop();
 
-                    m_current = m_lexer->pop();
-                }
-
-                return sig;
-            } break;
-
-            case TK_KEYWORD_MUT: {
-                sig.is_mut = true;
-
-                m_current = m_lexer->pop();
-            } break;
-
-            case TK_KEYWORD_CONST: {
-                sig.is_mut = false;
-
-                m_current = m_lexer->pop();
-            } break;
-
-            case TK_KEYWORD_STATIC: {
-                sig.is_static = true;
-
-                m_current = m_lexer->pop();
-            } break;
-
-            default: {
-                printf("Expected type\n");
+            if (m_current.type != TK_OPENING_PARENT) {
+                std::printf("Expected \'(\'\n");
 
                 std::exit(1);
-            } break;
-        }
+            }
+
+            m_current = m_lexer->pop();
+
+            while (m_current.type != TK_CLOSING_PARENT) {
+                ft->arg_types.push_back(parse_type());
+
+                if (m_current.type == TK_COMMA)
+                    m_current = m_lexer->pop();
+            }
+
+            m_current = m_lexer->pop();
+
+            if (m_current.type != TK_ARROW) {
+                printf("Expected \'->\' after argument list\n");
+
+                std::exit(1);
+            }
+
+            m_current = m_lexer->pop();
+
+            ft->return_type = parse_type();
+
+            if (m_current.type != TK_CLOSING_PARENT) {
+                printf("Expected \')\' after function type\n");
+
+                std::exit(1);
+            }
+
+            m_current = m_lexer->pop();
+
+            type = ft;
+        } break;
+
+        case TK_OPENING_BRACE: {
+            struct_type* st = new struct_type();
+
+            m_current = m_lexer->pop();
+
+            while (m_current.type != TK_CLOSING_BRACE) {
+                st->member_types.push_back(parse_type());
+
+                if (m_current.type == TK_COMMA)
+                    m_current = m_lexer->pop();
+            }
+
+            m_current = m_lexer->pop();
+
+            type = st;
+        } break;
     }
+
+    while (m_current.text == "*") {
+        type = new pointer_type(type);
+
+        m_current = m_lexer->pop();
+    }
+
+    return m_ts.add_type(type);
 }

@@ -96,7 +96,7 @@ koala::expression* koala::parser::parse_primary() {
         } break;
 
         case TK_IDENT: {
-            if (m_ts.is_type(m_current.text)) {
+            if (m_ts.get_type(m_current.text)) {
                 printf("Name reference names a type\n");
 
                 std::exit(1);

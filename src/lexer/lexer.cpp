@@ -9,6 +9,8 @@ std::unordered_map <std::string, int> g_ident_keyword_map = {
     { "const"   , koala::TK_KEYWORD_CONST },
     { "static"  , koala::TK_KEYWORD_STATIC },
     { "mut"     , koala::TK_KEYWORD_MUT },
+    { "let"     , koala::TK_KEYWORD_LET },
+    { "typeof"  , koala::TK_KEYWORD_TYPEOF }
 };
 
 const char* g_token_names[] = {
@@ -121,6 +123,10 @@ std::unordered_map <std::string, int> g_operator_type_map = {
     { "^=" , koala::TK_ASSIGNMENT_OPERATOR },
     { "<<=", koala::TK_ASSIGNMENT_OPERATOR },
     { ">>=", koala::TK_ASSIGNMENT_OPERATOR },
+    { "&&=", koala::TK_ASSIGNMENT_OPERATOR },
+    { "||=", koala::TK_ASSIGNMENT_OPERATOR },
+    { "^^=", koala::TK_ASSIGNMENT_OPERATOR },
+    { "%=" , koala::TK_ASSIGNMENT_OPERATOR },
     { "==" , koala::TK_BINARY_OPERATOR },
     { "!=" , koala::TK_BINARY_OPERATOR },
     { "<=" , koala::TK_BINARY_OPERATOR },
@@ -128,7 +134,6 @@ std::unordered_map <std::string, int> g_operator_type_map = {
     { "&&" , koala::TK_BINARY_OPERATOR },
     { "||" , koala::TK_BINARY_OPERATOR },
     { "^^" , koala::TK_BINARY_OPERATOR },
-    { "!"  , koala::TK_UNARY_OPERATOR },
     { "+"  , koala::TK_BINARY_OPERATOR },
     { "-"  , koala::TK_BINARY_OPERATOR },
     { "*"  , koala::TK_BINARY_OPERATOR },
@@ -144,6 +149,7 @@ std::unordered_map <std::string, int> g_operator_type_map = {
     { ">>" , koala::TK_BINARY_OPERATOR },
     { "++" , koala::TK_UNARY_OPERATOR },
     { "--" , koala::TK_UNARY_OPERATOR },
+    { "!"  , koala::TK_UNARY_OPERATOR },
     { "~"  , koala::TK_UNARY_OPERATOR }
 };
 
