@@ -17,6 +17,7 @@
 #include "statements/function_def.hpp"
 #include "statements/function_call.hpp"
 #include "statements/variable_def.hpp"
+#include "statements/return_expr.hpp"
 
 #include "common.hpp"
 
@@ -37,19 +38,15 @@ namespace koala {
         statement* parse_function_call(std::string name);
         statement* parse_function_def();
         statement* parse_variable_def();
+        statement* parse_return_expr();
     
     public:
         parser(lexer& lexer) :
             m_lexer(&lexer) {};
         
         void parse();
-        std::vector <statement*>& get_ast();
+        std::vector <statement*>* get_ast();
+        type_system* get_type_system();
         void execute_function(std::string name);
-    };
-
-    struct symbol {
-        std::string name;
-
-        type* type;
     };
 }

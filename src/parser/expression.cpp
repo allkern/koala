@@ -76,6 +76,7 @@ koala::expression* koala::parser::parse_primary() {
 
             unary_op ue;
 
+            ue.post = false;
             ue.op = m_current.text;
 
             m_current = m_lexer->pop();
@@ -115,6 +116,7 @@ koala::expression* koala::parser::parse_primary() {
     if (m_current.type == TK_UNARY_OPERATOR) {
         unary_op ue;
 
+        ue.post = true;
         ue.op = m_current.text;
 
         m_current = m_lexer->pop();
@@ -123,6 +125,9 @@ koala::expression* koala::parser::parse_primary() {
 
         expr = new unary_op(ue);
     }
+
+    // To-do: Check for function call ('(')
+    //        Check for array access ('[')
 
     return expr;
 }

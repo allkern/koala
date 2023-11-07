@@ -10,6 +10,7 @@
 namespace koala {
     class unary_op : public expression {
     public:
+        bool post = false;
         std::string op;
         expression* expr;
 

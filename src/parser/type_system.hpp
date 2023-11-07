@@ -22,7 +22,7 @@ namespace koala {
         type(std::string sig, int size) :
             sig(sig), size(size) {};
 
-        virtual int get_type() = 0;
+        virtual int get_class() = 0;
         virtual int get_size() = 0;
         virtual std::string str() = 0;
     };
@@ -34,7 +34,7 @@ namespace koala {
         integral_type(std::string sig, int size, bool is_signed) :
             type(sig, size), is_signed(is_signed) {};
         
-        int get_type() override {
+        int get_class() override {
             return TP_INTEGRAL;
         }
 
@@ -54,7 +54,7 @@ namespace koala {
         pointer_type(type* target) :
             type("", KOALA_ARCH_PTR_SIZE), target(target) {};
         
-        int get_type() override {
+        int get_class() override {
             return TP_POINTER;
         }
 
@@ -80,7 +80,7 @@ namespace koala {
         type* return_type;
         std::vector <type*> arg_types;
 
-        int get_type() override {
+        int get_class() override {
             return TP_FUNCTION;
         }
 
@@ -114,7 +114,7 @@ namespace koala {
         struct_type() :
             type("", 0) {};
 
-        int get_type() override {
+        int get_class() override {
             return TP_STRUCT;
         }
 

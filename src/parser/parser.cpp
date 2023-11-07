@@ -22,7 +22,10 @@ const char* g_readable_token_names[] = {
     "fn",
     "const",
     "static",
-    "mut"
+    "mut",
+    "let",
+    "typeof",
+    "return"
 };
 
 bool koala::parser::expect(int token) {
@@ -51,8 +54,12 @@ void koala::parser::parse() {
         std::cout << s->print(0) << std::endl;
 }
 
-std::vector <koala::statement*>& koala::parser::get_ast() {
-    return m_ast;
+std::vector <koala::statement*>* koala::parser::get_ast() {
+    return &m_ast;
+}
+
+koala::type_system* koala::parser::get_type_system() {
+    return &m_ts;
 }
 
 namespace koala {

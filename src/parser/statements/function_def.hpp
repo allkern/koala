@@ -13,13 +13,13 @@ namespace koala {
         bool mut = false;
 
         std::string name;
-        type* type;
+        type* t = nullptr;
     };
 
     class function_def : public statement {
     public:
         std::string name;
-        type* return_type;
+        type* return_type = nullptr;
         std::vector <function_arg> args;
         std::vector <statement*> body;
 
@@ -35,11 +35,11 @@ namespace koala {
             if (args.size()) {
                 for (int i = 0; i < args.size() - 1; i++) {
                     str += (args[i].mut ? "mut " : "");
-                    str += args[i].name + ": " + args[i].type->str() + ", ";
+                    str += args[i].name + ": " + args[i].t->str() + ", ";
                 }
 
                 str += (args.back().mut ? "mut " : "");
-                str += args.back().name + ": " + args.back().type->str();
+                str += args.back().name + ": " + args.back().t->str();
             }
 
             str += ") -> " + return_type->str() + " {\n";

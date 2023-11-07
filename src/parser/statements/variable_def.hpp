@@ -20,7 +20,7 @@ namespace koala {
         int storage_duration = 0;
 
         std::string name;
-        type* type = nullptr;
+        type* t = nullptr;
         std::string assignment_op;
         expression* init = nullptr;
 
@@ -35,7 +35,7 @@ namespace koala {
             str += storage_duration ? "static " : "";
             str += mut ? "mut " : "";
 
-            str += name + ": " + (type ? type->str() : "<auto>");
+            str += name + ": " + (t ? t->str() : "<auto>");
 
             if (init) {
                 str += " " + assignment_op + " " + init->print(0);

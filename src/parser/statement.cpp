@@ -1,8 +1,11 @@
 #include "statement.hpp"
 #include "parser.hpp"
 
+#include "statements/function_call.hpp"
 #include "statements/function_def.hpp"
 #include "statements/variable_def.hpp"
+#include "statements/return_expr.hpp"
+#include "statements/assignment.hpp"
 
 koala::statement* koala::parser::parse_statement() {
     statement* stmt = nullptr;
@@ -12,8 +15,12 @@ koala::statement* koala::parser::parse_statement() {
             stmt = parse_function_def();
         } break;
 
-        case TK_KEYWORD_CONST: case TK_KEYWORD_STATIC: case TK_KEYWORD_MUT:
-        case TK_KEYWORD_LET: {
+        case TK_KEYWORD_RETURN: {
+            stmt = parse_return_expr();
+        } break;
+
+        case TK_KEYWORD_CONST: case TK_KEYWORD_STATIC:
+        case TK_KEYWORD_MUT: case TK_KEYWORD_LET: {
             stmt = parse_variable_def();
         } break;
 

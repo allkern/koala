@@ -8,7 +8,8 @@ namespace koala {
         ST_VARIABLE_DEF,
         ST_STRUCT_DEF,
         ST_ASSIGNMENT,
-        ST_FUNCTION_CALL
+        ST_FUNCTION_CALL,
+        ST_RETURN_EXPR
     };
 
     class statement {

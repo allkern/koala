@@ -27,7 +27,7 @@ koala::statement* koala::parser::parse_variable_def() {
     if (m_current.type == TK_COLON) {
         m_current = m_lexer->pop();
 
-        vd.type = parse_type();
+        vd.t = parse_type();
     } 
 
     if (m_current.type == TK_ASSIGNMENT_OPERATOR) {
@@ -37,7 +37,7 @@ koala::statement* koala::parser::parse_variable_def() {
 
         vd.init = parse_expression();
     } else {
-        if (!vd.type) {
+        if (!vd.t) {
             printf("Cannot define a variable with automatic typing without initialization\n");
 
             std::exit(1);

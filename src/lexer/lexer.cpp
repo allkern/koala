@@ -10,7 +10,8 @@ std::unordered_map <std::string, int> g_ident_keyword_map = {
     { "static"  , koala::TK_KEYWORD_STATIC },
     { "mut"     , koala::TK_KEYWORD_MUT },
     { "let"     , koala::TK_KEYWORD_LET },
-    { "typeof"  , koala::TK_KEYWORD_TYPEOF }
+    { "typeof"  , koala::TK_KEYWORD_TYPEOF },
+    { "return"  , koala::TK_KEYWORD_RETURN }
 };
 
 const char* g_token_names[] = {
@@ -34,7 +35,10 @@ const char* g_token_names[] = {
     "TK_KEYWORD_FN",
     "TK_KEYWORD_CONST",
     "TK_KEYWORD_STATIC",
-    "TK_KEYWORD_MUT"
+    "TK_KEYWORD_MUT",
+    "TK_KEYWORD_LET",
+    "TK_KEYWORD_TYPEOF",
+    "TK_KEYWORD_RETURN"
 };
 
 char koala::lexer::next() {
@@ -109,7 +113,7 @@ bool isop(char c) {
     return (c == '+') || (c == '-') || (c == '*') || (c == '/') ||
            (c == '%') || (c == '&') || (c == '|') || (c == '^') ||
            (c == '!') || (c == '<') || (c == '>') || (c == '~') ||
-           (c == '=');
+           (c == '=') || (c == '.');
 }
 
 std::unordered_map <std::string, int> g_operator_type_map = {
@@ -150,7 +154,8 @@ std::unordered_map <std::string, int> g_operator_type_map = {
     { "++" , koala::TK_UNARY_OPERATOR },
     { "--" , koala::TK_UNARY_OPERATOR },
     { "!"  , koala::TK_UNARY_OPERATOR },
-    { "~"  , koala::TK_UNARY_OPERATOR }
+    { "~"  , koala::TK_UNARY_OPERATOR },
+    { "."  , koala::TK_UNARY_OPERATOR }
 };
 
 int koala::lexer::lex_operator() {

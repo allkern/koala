@@ -47,7 +47,7 @@ koala::statement* koala::parser::parse_function_def() {
 
         m_current = m_lexer->pop();
 
-        fa.type = parse_type();
+        fa.t = parse_type();
 
         fd.args.push_back(fa);
 
@@ -62,12 +62,13 @@ koala::statement* koala::parser::parse_function_def() {
         }
     }
 
-    if (!expect(TK_ARROW))
-        return nullptr;
-
     m_current = m_lexer->pop();
 
-    fd.return_type = parse_type();
+    if (m_current.type == TK_ARROW) {
+        m_current = m_lexer->pop();
+
+        fd.return_type = parse_type();
+    }
 
     if (m_current.type != TK_OPENING_BRACE) {
         printf("Expected \'{\' after function definition\n");
