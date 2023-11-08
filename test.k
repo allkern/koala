@@ -1,5 +1,8 @@
-fn main(argc: int, argv: char**) -> int {
-    let str = "Hello, world!";
+fn foo(a: int) {
+    a = 20;
+    return a * a;
+}
 
-    return argc;
+fn main(a: int, str: koala_string) {
+    return str.ptr[1];
 }

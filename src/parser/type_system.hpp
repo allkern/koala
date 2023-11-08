@@ -80,7 +80,7 @@ namespace koala {
         function_type() :
             type("", 0) {};
 
-        type* return_type;
+        type* return_type = nullptr;
         std::vector <type*> arg_types;
 
         int get_class() override {

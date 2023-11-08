@@ -10,6 +10,7 @@ mkdir -Force -Path bin > $null
 
 c++ -I"`"$($KOALA_DIR)`"" `
     "main.cpp" `
+    "src\*.cpp" `
     "src\lexer\*.cpp" `
     "src\parser\*.cpp" `
     "src\parser\statements\*.cpp" `

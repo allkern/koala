@@ -14,6 +14,8 @@
 #include "expressions/unary_op.hpp"
 #include "expressions/string_literal.hpp"
 #include "expressions/member_access.hpp"
+#include "expressions/function_call.hpp"
+#include "expressions/array_access.hpp"
 #include "statement.hpp"
 #include "statements/assignment.hpp"
 #include "statements/function_def.hpp"

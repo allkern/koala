@@ -42,7 +42,7 @@ namespace koala {
                 str += args.back().name + ": " + args.back().t->str();
             }
 
-            str += ") -> " + return_type->str() + " {\n";
+            str += ") -> " + (return_type ? return_type->str() : "<auto>") + " {\n";
 
             for (statement* s : body)
                 str += s->print(hierarchy + 1);

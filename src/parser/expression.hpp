@@ -13,7 +13,9 @@ namespace koala {
         EX_UNARY_OP,
         EX_BINARY_OP,
         EX_NAME_REF,
-        EX_MEMBER_ACCESS
+        EX_MEMBER_ACCESS,
+        EX_FUNCTION_CALL,
+        EX_ARRAY_ACCESS
     };
 
     class expression {

@@ -124,15 +124,18 @@ std::unordered_map <std::string, int> g_operator_type_map = {
     { "-=" , koala::TK_ASSIGNMENT_OPERATOR },
     { "*=" , koala::TK_ASSIGNMENT_OPERATOR },
     { "/=" , koala::TK_ASSIGNMENT_OPERATOR },
+    { "%=" , koala::TK_ASSIGNMENT_OPERATOR },
     { "&=" , koala::TK_ASSIGNMENT_OPERATOR },
+    { "!&=", koala::TK_ASSIGNMENT_OPERATOR },
     { "|=" , koala::TK_ASSIGNMENT_OPERATOR },
+    { "!|=", koala::TK_ASSIGNMENT_OPERATOR },
     { "^=" , koala::TK_ASSIGNMENT_OPERATOR },
+    { "!^=", koala::TK_ASSIGNMENT_OPERATOR },
     { "<<=", koala::TK_ASSIGNMENT_OPERATOR },
     { ">>=", koala::TK_ASSIGNMENT_OPERATOR },
     { "&&=", koala::TK_ASSIGNMENT_OPERATOR },
     { "||=", koala::TK_ASSIGNMENT_OPERATOR },
     { "^^=", koala::TK_ASSIGNMENT_OPERATOR },
-    { "%=" , koala::TK_ASSIGNMENT_OPERATOR },
     { "==" , koala::TK_BINARY_OPERATOR },
     { "!=" , koala::TK_BINARY_OPERATOR },
     { "<=" , koala::TK_BINARY_OPERATOR },
@@ -158,8 +161,7 @@ std::unordered_map <std::string, int> g_operator_type_map = {
     { "++" , koala::TK_UNARY_OPERATOR },
     { "--" , koala::TK_UNARY_OPERATOR },
     { "!"  , koala::TK_UNARY_OPERATOR },
-    { "~"  , koala::TK_UNARY_OPERATOR },
-    { "."  , koala::TK_UNARY_OPERATOR }
+    { "~"  , koala::TK_UNARY_OPERATOR }
 };
 
 int koala::lexer::lex_operator() {

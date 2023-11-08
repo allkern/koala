@@ -153,6 +153,53 @@ koala::expression* koala::parser::parse_primary() {
                 expr = new member_access(ma);
             } break;
 
+            case TK_OPENING_PARENT: {
+                function_call_expr fc;
+
+                fc.expr = expr;
+
+                m_current = m_lexer->pop();
+
+                while (m_current.type != TK_CLOSING_PARENT) {
+                    fc.args.push_back(parse_expression());
+
+                    if (m_current.type == TK_CLOSING_PARENT)
+                        break;
+
+                    if (m_current.type != TK_COMMA) {
+                        printf("Expected \',\' after function call argument\n");
+
+                        std::exit(1);
+                    }
+
+                    m_current = m_lexer->pop();
+                }
+
+                m_current = m_lexer->pop();
+
+                expr = new function_call_expr(fc);
+            } break;
+
+            case TK_OPENING_BRACKET: {
+                array_access aa;
+
+                aa.expr = expr;
+
+                m_current = m_lexer->pop();
+
+                aa.index = parse_expression();
+
+                if (m_current.type != TK_CLOSING_BRACKET) {
+                    printf("Expected \'[\'\n");
+
+                    std::exit(1);
+                }
+
+                m_current = m_lexer->pop();
+
+                expr = new array_access(aa);
+            } break;
+
             default: {
                 done = true;
             } break;
