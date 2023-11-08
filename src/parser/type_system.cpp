@@ -1,6 +1,8 @@
 #include "type_system.hpp"
 #include "parser.hpp"
 
+#include <sstream>
+
 koala::type* koala::type_system::add_type(type* t) {
     std::string sig = t->str();
 
@@ -39,13 +41,37 @@ bool koala::type_system::is_comparable(type* t, type* u) {
 }
 
 koala::type* koala::parser::parse_type() {
-    type* type;
+    type* t;
 
     switch (m_current.type) {
-        case TK_IDENT: {
-            type = m_ts.get_type(m_current.text);
+        case TK_KEYWORD_TYPEOF: {
+            m_current = m_lexer->pop();
 
-            if (!type) {
+            if (m_current.type != TK_OPENING_PARENT) {
+                printf("Expected \'(\'\n");
+
+                std::exit(1);
+            }
+
+            m_current = m_lexer->pop();
+
+            typeof_type* tt = new typeof_type(parse_expression());
+
+            if (m_current.type != TK_CLOSING_PARENT) {
+                printf("Expected \')\'\n");
+
+                std::exit(1);
+            }
+
+            m_current = m_lexer->pop();
+
+            t = tt;
+        } break;
+
+        case TK_IDENT: {
+            t = m_ts.get_type(m_current.text);
+
+            if (!t) {
                 printf("\'%s\' does not name a type", m_current.text.c_str());
 
                 std::exit(0);
@@ -94,7 +120,7 @@ koala::type* koala::parser::parse_type() {
 
             m_current = m_lexer->pop();
 
-            type = ft;
+            t = ft;
         } break;
 
         case TK_OPENING_BRACE: {
@@ -103,7 +129,29 @@ koala::type* koala::parser::parse_type() {
             m_current = m_lexer->pop();
 
             while (m_current.type != TK_CLOSING_BRACE) {
-                st->member_types.push_back(parse_type());
+                struct_member m;
+
+                if (m_current.type != TK_IDENT) {
+                    printf("Expected member name\n");
+
+                    std::exit(1);
+                }
+
+                m.name = m_current.text;
+
+                m_current = m_lexer->pop();
+
+                if (m_current.type != TK_COLON) {
+                    printf("Expected \':\'\n");
+
+                    std::exit(1);
+                }
+
+                m_current = m_lexer->pop();
+
+                m.t = parse_type();
+
+                st->members.push_back(m);
 
                 if (m_current.type == TK_COMMA)
                     m_current = m_lexer->pop();
@@ -111,15 +159,37 @@ koala::type* koala::parser::parse_type() {
 
             m_current = m_lexer->pop();
 
-            type = st;
+            t = st;
+        } break;
+
+        default: {
+            printf("Expected type\n");
+
+            std::exit(1);
         } break;
     }
 
     while (m_current.text == "*") {
-        type = new pointer_type(type);
+        t = new pointer_type(t);
 
         m_current = m_lexer->pop();
     }
 
-    return m_ts.add_type(type);
+    return (t->get_class() != TP_TYPEOF) ? m_ts.add_type(t) : t;
+}
+
+// To-do: Implement full type parser here
+//        So we can do stuff like add_type("((char*, int) -> int)")
+// koala::type* koala::type_system::add_type(std::string sig) {
+//     lexer* m_lexer;
+// }
+
+void koala::type_system::init() {
+    struct_type* st = new struct_type();
+    pointer_type* pt = new pointer_type(get_type("char"));
+
+    st->members.push_back({ get_type("u32"), "size" });
+    st->members.push_back({ add_type(pt)   , "ptr"  });
+
+    m_type_map["koala_string"] = st;
 }

@@ -61,6 +61,7 @@ namespace koala {
         TK_SEMICOLON,
         TK_COMMA,
         TK_ARROW,
+        TK_DOT,
         TK_ASSIGNMENT_OPERATOR,
         TK_BINARY_OPERATOR,
         TK_UNARY_OPERATOR,

@@ -29,6 +29,7 @@ const char* g_token_names[] = {
     "TK_SEMICOLON",
     "TK_COMMA",
     "TK_ARROW",
+    "TK_DOT",
     "TK_ASSIGNMENT_OPERATOR",
     "TK_BINARY_OPERATOR",
     "TK_UNARY_OPERATOR",
@@ -94,6 +95,7 @@ int koala::lexer::lex_separator() {
         case ':': push_token(TK_COLON          ).text = ":"; next(); return TK_COLON;
         case ';': push_token(TK_SEMICOLON      ).text = ";"; next(); return TK_SEMICOLON;
         case ',': push_token(TK_COMMA          ).text = ","; next(); return TK_COMMA;
+        case '.': push_token(TK_DOT            ).text = "."; next(); return TK_DOT;
         case '-': {
             if (m_input->peek() == '>') {
                 next();
@@ -135,6 +137,8 @@ std::unordered_map <std::string, int> g_operator_type_map = {
     { "!=" , koala::TK_BINARY_OPERATOR },
     { "<=" , koala::TK_BINARY_OPERATOR },
     { ">=" , koala::TK_BINARY_OPERATOR },
+    { "<"  , koala::TK_BINARY_OPERATOR },
+    { ">"  , koala::TK_BINARY_OPERATOR },
     { "&&" , koala::TK_BINARY_OPERATOR },
     { "||" , koala::TK_BINARY_OPERATOR },
     { "^^" , koala::TK_BINARY_OPERATOR },
@@ -237,7 +241,7 @@ void koala::lexer::lex() {
         lexed:
 
         continue;
-        
+
         // std::cout << g_token_names[m_output.back().type] << " (" << m_output.back().text << ")" << std::endl;
     }
 }

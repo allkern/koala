@@ -12,6 +12,8 @@
 #include "expressions/binary_op.hpp"
 #include "expressions/name_ref.hpp"
 #include "expressions/unary_op.hpp"
+#include "expressions/string_literal.hpp"
+#include "expressions/member_access.hpp"
 #include "statement.hpp"
 #include "statements/assignment.hpp"
 #include "statements/function_def.hpp"

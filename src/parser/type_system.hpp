@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#include "expression.hpp"
+
 #define KOALA_ARCH_PTR_SIZE 4
 
 namespace koala {
@@ -11,7 +13,8 @@ namespace koala {
         TP_INTEGRAL,
         TP_POINTER,
         TP_FUNCTION,
-        TP_STRUCT
+        TP_STRUCT,
+        TP_TYPEOF
     };
 
     class type {
@@ -107,9 +110,15 @@ namespace koala {
         }
     };
 
+    struct struct_member {
+        type* t;
+
+        std::string name;
+    };
+
     class struct_type : public type {
     public:
-        std::vector <type*> member_types;
+        std::vector <struct_member> members;
 
         struct_type() :
             type("", 0) {};
@@ -121,8 +130,8 @@ namespace koala {
         int get_size() override {
             int size = 0;
 
-            for (type* t : member_types)
-                size += t->get_size();
+            for (struct_member m : members)
+                size += m.t->get_size();
 
             return size;
         }
@@ -133,16 +142,36 @@ namespace koala {
             
             sig = "{";
 
-            if (member_types.size()) {
-                for (int i = 0; i < member_types.size() - 1; i++)
-                    sig += member_types[i]->str() + ", ";
+            if (members.size()) {
+                for (int i = 0; i < members.size() - 1; i++)
+                    sig += members[i].name + ": " + members[i].t->str() + ", ";
                 
-                sig += member_types.back()->str();
+                sig += members.back().name + ": " + members.back().t->str();
             }
 
             sig += "}";
 
             return sig;
+        }
+    };
+
+    class typeof_type : public type {
+    public:
+        expression* target;
+
+        typeof_type(expression* target) :
+            type("", 0), target(target) {};
+        
+        int get_class() override {
+            return TP_TYPEOF;
+        }
+
+        int get_size() override {
+            return 0;
+        }
+
+        std::string str() override {
+            return "typeof(" + target->print(0) + ")";
         }
     };
 
@@ -160,10 +189,17 @@ namespace koala {
             { "u32"  , new integral_type("u32"  , 4, false) }
         };
 
+        void init();
+
     public:
         type* get_type(std::string sig);
         type* add_type(type* t);
+        type* add_type(std::string sig);
         bool is_equal(type* t, type* u);
         bool is_comparable(type* t, type* u);
+
+        type_system() {
+            init();
+        }
     };
 }

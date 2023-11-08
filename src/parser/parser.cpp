@@ -16,6 +16,7 @@ const char* g_readable_token_names[] = {
     ";",
     ",",
     "->",
+    ".",
     "assignment-operator",
     "binary-operator",
     "unary-operator",
@@ -80,6 +81,18 @@ namespace koala {
 
     uint32_t evaluate_expression(expression* expr, std::vector <var>& vars) {
         switch (expr->get_tag()) {
+            case EX_STRING_LITERAL: {
+                string_literal* sl = (string_literal*)expr;
+
+                return (uintptr_t)sl->value.c_str();
+            } break;
+
+            case EX_MEMBER_ACCESS: {
+                member_access* ma = (member_access*)expr;
+
+                return 0;
+            } break;
+
             case EX_INTEGER_CONSTANT: {
                 integer_constant* ie = (integer_constant*)expr;
 

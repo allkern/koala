@@ -96,6 +96,16 @@ koala::expression* koala::parser::parse_primary() {
             expr = new integer_constant(ie);
         } break;
 
+        case TK_STRING: {
+            string_literal sl;
+
+            sl.value = m_current.text;
+
+            m_current = m_lexer->pop();
+
+            expr = new string_literal(sl);
+        } break;
+
         case TK_IDENT: {
             if (m_ts.get_type(m_current.text)) {
                 printf("Name reference names a type\n");
@@ -113,18 +123,41 @@ koala::expression* koala::parser::parse_primary() {
         }
     }
 
-    if (m_current.type == TK_UNARY_OPERATOR) {
-        unary_op ue;
+    bool done = false;
 
-        ue.post = true;
-        ue.op = m_current.text;
+    do {
+        switch (m_current.type) {
+            case TK_UNARY_OPERATOR: {
+                unary_op ue;
 
-        m_current = m_lexer->pop();
+                ue.post = true;
+                ue.op = m_current.text;
 
-        ue.expr = expr;
+                m_current = m_lexer->pop();
 
-        expr = new unary_op(ue);
-    }
+                ue.expr = expr;
+
+                expr = new unary_op(ue);
+            } break;
+
+            case TK_DOT: {
+                member_access ma;
+
+                m_current = m_lexer->pop();
+
+                ma.expr = expr;
+                ma.member = m_current.text;
+
+                m_current = m_lexer->pop();
+
+                expr = new member_access(ma);
+            } break;
+
+            default: {
+                done = true;
+            } break;
+        }
+    } while (!done);
 
     // To-do: Check for function call ('(')
     //        Check for array access ('[')

@@ -1,14 +1,19 @@
 #pragma once
 
-#include "type_system.hpp"
+//#include "type_system.hpp"
 #include "../common.hpp"
 
+
 namespace koala {
+    class type;
+
     enum : int {
         EX_INTEGER_CONSTANT,
+        EX_STRING_LITERAL,
         EX_UNARY_OP,
         EX_BINARY_OP,
         EX_NAME_REF,
+        EX_MEMBER_ACCESS
     };
 
     class expression {
@@ -19,7 +24,7 @@ namespace koala {
             return m_loc;
         }
 
-        type* type = nullptr;
+        type* t = nullptr;
 
         virtual std::string print(int hierarchy) = 0;
         virtual int get_tag() = 0;

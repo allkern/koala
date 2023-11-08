@@ -1,12 +1,5 @@
-fn foo(a: i32, b: { u32, u8 }) -> char** {
-    a = 2;
-}
+fn main(argc: int, argv: char**) -> int {
+    let str = "Hello, world!";
 
-fn main(a: int, b: u32*) -> int {
-    let s = foo;
-    let f = s;
-
-    f = 10;
-
-    print(s);
+    return argc;
 }

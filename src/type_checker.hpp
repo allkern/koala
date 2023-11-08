@@ -15,6 +15,55 @@ namespace koala {
         std::vector <symbol>      m_local_symbols;
         std::vector <symbol>      m_global_symbols;
         int                       m_scope = 0;
+        function_def*             m_current_function;
+
+        type* complete_type(type* t) {
+            switch (t->get_class()) {
+                case TP_TYPEOF: {
+                    typeof_type* tt = (typeof_type*)t;
+
+                    type* target = get_type(tt->target);
+
+                    // Get rid of the typeof type
+                    delete t;
+
+                    return target;
+                } break;
+
+                case TP_FUNCTION: {
+                    function_type* ft = (function_type*)t;
+
+                    for (int i = 0; i < ft->arg_types.size(); i++) {
+                        ft->arg_types[i] = complete_type(ft->arg_types[i]);
+                    }
+
+                    ft->return_type = complete_type(ft->return_type);
+
+                    return t;
+                } break;
+
+                case TP_INTEGRAL: {
+                    return t;
+                } break;
+
+                case TP_POINTER: {
+                    pointer_type* pt = (pointer_type*)t;
+
+                    pt->target = complete_type(pt->target);
+
+                    return t;
+                } break;
+
+                case TP_STRUCT: {
+                    struct_type* st = (struct_type*)t;
+
+                    for (int i = 0; i < st->members.size(); i++)
+                        st->members[i].t = complete_type(st->members[i].t);
+
+                    return st;
+                } break;
+            }
+        }
 
         void push_symbol(std::string name, type* t) {
             if (m_scope) {
@@ -34,56 +83,110 @@ namespace koala {
                 if (s.name == name)
                     return s;
 
-            printf("Symbol with name \'%s\' wasn't found", name.c_str());
+            printf("Symbol with name \'%s\' was not found\n", name.c_str());
+
+            std::exit(1);
+        }
+
+        struct_member& lookup_member(std::string name, struct_type* st) {
+            for (struct_member& s : st->members)
+                if (s.name == name)
+                    return s;
+
+            printf("Member with name \'%s\' was not found in struct type \'%s\'\n",
+                name.c_str(),
+                st->str().c_str()
+            );
 
             std::exit(1);
         }
 
         // To-do: Make this better
         type* get_type(integer_constant* ic) {
-            if (ic->type)
-                return ic->type;
+            if (ic->t)
+                return ic->t;
 
-            ic->type = m_ts->get_type("int");
+            ic->t = m_ts->get_type("int");
 
-            return ic->type;
+            return ic->t;
+        }
+
+        type* get_type(string_literal* sl) {
+            if (sl->t)
+                return sl->t;
+
+            sl->t = m_ts->get_type("koala_string");
+
+            return sl->t;
         }
 
         type* get_type(binary_op* bo) {
-            if (bo->type)
-                return bo->type;
+            if (bo->t)
+                return bo->t;
 
             // Return the bigger of the two types
             type* left = get_type(bo->left);
             type* right = get_type(bo->right);
 
-            if (left->get_size() <= right->get_size()) {
-                bo->type = right;
-            } else {
-                bo->type = left;
+            if (left->get_class() != right->get_class()) {
+                printf("Attempting to perform a binary operation between \'%s\' and \'%s\'\n",
+                    left->str().c_str(),
+                    right->str().c_str()
+                );
+
+                std::exit(1);
             }
 
-            return bo->type;
+            if (left->get_size() <= right->get_size()) {
+                bo->t = right;
+            } else {
+                bo->t = left;
+            }
+
+            return bo->t;
         }
 
         type* get_type(unary_op* uo) {
-            if (uo->type)
-                return uo->type;
+            if (uo->t)
+                return uo->t;
 
-            uo->type = get_type(uo->expr);
+            uo->t = get_type(uo->expr);
 
-            return uo->type;
+            return uo->t;
         }
 
         type* get_type(name_ref* nr) {
-            if (nr->type)
-                return nr->type;
+            if (nr->t)
+                return nr->t;
 
             symbol& s = lookup_symbol(nr->name);
 
-            nr->type = s.t;
+            nr->t = s.t;
 
-            return nr->type;
+            return nr->t;
+        }
+
+        type* get_type(member_access* ma) {
+            if (ma->t)
+                return ma->t;
+
+            type* expr_type = get_type(ma->expr);
+
+            if (expr_type->get_class() != TP_STRUCT) {
+                printf("Trying to access member \'%s\' of non-struct type \'%s\'\n",
+                    ma->member.c_str(),
+                    expr_type->str().c_str()
+                );
+
+                std::exit(1);
+            }
+
+            struct_type* st = (struct_type*)expr_type;
+            struct_member& m = lookup_member(ma->member, st);
+
+            m.t = complete_type(m.t);
+
+            return m.t;
         }
 
         type* get_type(expression* e) {
@@ -103,6 +206,14 @@ namespace koala {
                 case EX_BINARY_OP: {
                     return get_type((binary_op*)e);
                 } break;
+
+                case EX_STRING_LITERAL: {
+                    return get_type((string_literal*)e);
+                } break;
+
+                case EX_MEMBER_ACCESS: {
+                    return get_type((member_access*)e);
+                } break;
             }
 
             printf("Unknown expression\n");
@@ -114,6 +225,8 @@ namespace koala {
 
         void check_statement(variable_def* vd) {
             if (!vd->init) {
+                vd->t = complete_type(vd->t);
+
                 push_symbol(vd->name, vd->t);
 
                 return;
@@ -121,8 +234,11 @@ namespace koala {
 
             type* init_type = get_type(vd->init);
 
-            if (!vd->t)
+            if (!vd->t) {
                 vd->t = init_type;
+            } else {
+                vd->t = complete_type(vd->t);
+            }
 
             if (init_type->get_class() != vd->t->get_class()) {
                 printf("Initializing a variable of type \'%s\' with a value of type \'%s\'\n",
@@ -168,7 +284,7 @@ namespace koala {
                 printf("Too many arguments in function call\n");
 
                 std::exit(1);
-            } else if (ft->arg_types.size() < fc->args.size()) {
+            } else if (ft->arg_types.size() > fc->args.size()) {
                 printf("Too few arguments in function call\n");
 
                 std::exit(1);
@@ -191,17 +307,41 @@ namespace koala {
         }
 
         void check_statement(return_expr* re) {
-            return;
+            if (!m_current_function) {
+                printf("Return statement used outside of a function definition\n");
+
+                std::exit(1);
+            }
+
+            type* expr_type = get_type(re->expr);
+
+            if (!m_current_function->return_type) {
+                m_current_function->return_type = expr_type;
+            } else {
+                if (m_current_function->return_type->get_class() != expr_type->get_class()) {
+                    printf("Trying to return a value of type \'%s\' on a function with return type \'%s\'",
+                        expr_type->str().c_str(),
+                        m_current_function->return_type->str().c_str()
+                    );
+
+                    std::exit(1);
+                }
+            }
         }
 
         void check_statement(function_def* fd) {
+            m_current_function = fd;
+
             function_type* ft = new function_type();
 
             m_local_symbols.clear();
 
-            ft->return_type = fd->return_type;
+            if (ft->return_type)
+                ft->return_type = complete_type(fd->return_type);
             
             for (function_arg& fa : fd->args) {
+                fa.t = complete_type(fa.t);
+
                 push_symbol(fa.name, fa.t);
 
                 ft->arg_types.push_back(fa.t);
@@ -217,6 +357,8 @@ namespace koala {
                 check_statement(s);
 
             m_scope = 0;
+
+            m_current_function = nullptr;
         }
 
         void check_statement(statement* s) {
