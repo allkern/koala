@@ -57,7 +57,7 @@ namespace koala {
 
     class interpreter {
         std::vector <statement*>* m_ast;
-        type_system*              m_ts;
+        type_system*              m_ts = nullptr;
 
     public:
         class variable;
@@ -70,8 +70,8 @@ namespace koala {
 
         class integral_value : public value {
         public:
-            integral_type* t;
-            uint64_t value;
+            integral_type* t = nullptr;
+            uint64_t value = 0;
 
             int get_class() override {
                 return TP_INTEGRAL;
@@ -84,7 +84,7 @@ namespace koala {
 
         class struct_value : public value {
         public:
-            struct_type* t;
+            struct_type* t = nullptr;
 
             std::vector <variable> members;
 
@@ -99,8 +99,8 @@ namespace koala {
 
         class pointer_value : public value {
         public:
-            pointer_type* t;
-            uintptr_t value;
+            pointer_type* t = nullptr;
+            uintptr_t value = 0;
 
             int get_class() override {
                 return TP_POINTER;
@@ -117,7 +117,7 @@ namespace koala {
 
         class function_value : public value {
         public:
-            function_def* def;
+            function_def* def = nullptr;
 
             int get_class() override {
                 return TP_FUNCTION;
@@ -142,7 +142,7 @@ namespace koala {
         class constant {
         public:
             std::string name;
-            value* v;
+            value* v = nullptr;
         };
 
     private:

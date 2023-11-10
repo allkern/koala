@@ -10,6 +10,7 @@ namespace koala {
     enum : int {
         EX_INTEGER_CONSTANT,
         EX_STRING_LITERAL,
+        EX_ARRAY_LITERAL,
         EX_UNARY_OP,
         EX_BINARY_OP,
         EX_NAME_REF,

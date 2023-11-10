@@ -23,14 +23,14 @@ namespace koala {
             str += std::string(hierarchy * 4, ' ') + expr->print(0) + "(";
 
             if (!args.size()) {
-                return str + ");\n";
+                return str + ")";
             }
 
             for (int i = 0; i < args.size() - 1; i++) {
                 str += args[i]->print(0) + ", ";
             }
 
-            str += args.back()->print(0) + ");\n";
+            str += args.back()->print(0) + ")";
 
             return str;
         }

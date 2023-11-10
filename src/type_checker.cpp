@@ -48,11 +48,15 @@ koala::type* koala::type_checker::complete_type(koala::type* t) {
     }
 }
 
-void koala::type_checker::push_symbol(std::string name, koala::type* t) {
+koala::symbol* koala::type_checker::push_symbol(std::string name, koala::type* t) {
     if (m_scope) {
         m_local_symbols.push_back(symbol{ t, name });
+
+        return &m_local_symbols.back();
     } else {
         m_global_symbols.push_back(symbol{ t, name });
+
+        return &m_global_symbols.back();
     }
 }
 
@@ -364,7 +368,7 @@ void koala::type_checker::check_statement(koala::function_call* fc) {
 }
 
 void koala::type_checker::check_statement(koala::return_expr* re) {
-    if (!m_current_function_type) {
+    if (!m_current_ft) {
         printf("Return statement used outside of a function definition\n");
 
         std::exit(1);
@@ -372,15 +376,17 @@ void koala::type_checker::check_statement(koala::return_expr* re) {
 
     type* expr_type = get_type(re->expr);
 
-    if (!m_current_function_type->return_type) {
-        m_current_function_type->return_type = expr_type;
+    if (!m_current_ft->return_type) {
+        m_current_ft->return_type = expr_type;
+        ((function_type*)m_current_symbol->t)->return_type = expr_type;
 
-        m_current_function_type = (function_type*)m_ts->add_type(m_current_function_type);
+        // Clear signature
+        m_current_ft->sig = "";
     } else {
-        if (m_current_function_type->return_type->get_class() != expr_type->get_class()) {
+        if (m_current_ft->return_type->get_class() != expr_type->get_class()) {
             printf("Trying to return a value of type \'%s\' on a function with return type \'%s\'",
                 expr_type->str().c_str(),
-                m_current_function_type->return_type->str().c_str()
+                m_current_ft->return_type->str().c_str()
             );
 
             std::exit(1);
@@ -406,17 +412,8 @@ void koala::type_checker::check_statement(koala::function_def* fd) {
 
     type* t = nullptr;
 
-    if (fd->return_type) {
-        t = m_ts->add_type(ft);
-
-        m_current_function_type = (function_type*)t;
-    } else {
-        t = ft;
-
-        m_current_function_type = (function_type*)t;
-    }
-
-    push_symbol(fd->name, t);
+    m_current_ft = (function_type*)m_ts->add_type(ft);
+    m_current_symbol = push_symbol(fd->name, m_current_ft);
 
     m_scope = 1;
 
@@ -425,7 +422,8 @@ void koala::type_checker::check_statement(koala::function_def* fd) {
 
     m_scope = 0;
 
-    m_current_function_type = nullptr;
+    m_current_ft = nullptr;
+    m_current_symbol = nullptr;
 }
 
 void koala::type_checker::check_statement(koala::statement* s) {

@@ -104,7 +104,7 @@ namespace koala {
                 sig += arg_types.back()->str();
             }
 
-            sig += ") -> " + return_type->str() + ")";
+            sig += ") -> " + (return_type ? return_type->str() : "<auto>") + ")";
 
             return sig;
         }

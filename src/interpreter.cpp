@@ -402,9 +402,6 @@ void koala::interpreter::execute_statement(assignment* a) {
 
         var->v = evaluate_expression(a->src);
 
-        if (old_value)
-            delete old_value;
-
         return;
     }
 
@@ -548,6 +545,9 @@ koala::interpreter::variable* koala::interpreter::search_member(std::string name
 }
 
 koala::interpreter::variable* koala::interpreter::search_variable(std::string name) {
+    if (!m_local_variables.size())
+        return nullptr;
+
     for (variable& v : m_local_variables.top())
         if (v.name == name)
             return &v;
@@ -572,16 +572,42 @@ void koala::interpreter::add_variable(koala::interpreter::variable& v) {
 }
 
 koala::function_def* koala::interpreter::search_function(std::string name) {
-    for (statement* s : *m_ast)
-        if (s->get_tag() == ST_FUNCTION_DEF)
-            if (((function_def*)s)->name == name)
-                return (function_def*)s;
+    variable* v = search_variable(name);
 
-    printf("Could not find function \'%s\'\n", name.c_str());
+    if (!v) {
+        constant* c = search_constant(name);
 
-    std::exit(1);
+        if (!c) {
+            printf("Could not find function \'%s\'\n", name.c_str());
 
-    return nullptr;
+            std::exit(1);
+
+            return nullptr;
+        }
+
+        if (c->v->get_class() != TP_FUNCTION) {
+            printf("Symbol \'%s\' is not a function type", c->name.c_str());
+
+            *(int*)0 = 0;
+
+            std::exit(1);
+
+            return nullptr;
+        }
+
+        return ((function_value*)c->v)->def;
+    } else {
+        if (v->v->get_class() != TP_FUNCTION) {
+            printf("Symbol \'%s\' is not a function type", v->name.c_str());
+            *(int*)0 = 0;
+
+            std::exit(1);
+
+            return nullptr;
+        }
+
+        return ((function_value*)v->v)->def;
+    }
 }
 
 koala::interpreter::value* koala::interpreter::call_function(std::string name, std::vector <koala::interpreter::value*> args) {

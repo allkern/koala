@@ -1,8 +1,17 @@
 fn foo(a: int) {
-    a = 20;
     return a * a;
 }
 
+fn bar(a: int) {
+    let square = foo(a);
+
+    return square * a;
+}
+
 fn main(a: int, str: koala_string) {
-    return str.ptr[1];
+    mut f: typeof(foo);
+
+    f = bar;
+
+    return f(2);
 }

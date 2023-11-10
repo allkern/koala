@@ -11,14 +11,15 @@ namespace koala {
 
     class type_checker {
         std::vector <statement*>* m_ast;
-        type_system*              m_ts;
+        type_system*              m_ts = nullptr;
         std::vector <symbol>      m_local_symbols;
         std::vector <symbol>      m_global_symbols;
         int                       m_scope = 0;
-        function_type*            m_current_function_type;
+        function_type*            m_current_ft = nullptr;
+        symbol*                   m_current_symbol = nullptr;
 
         type* complete_type(type* t);
-        void push_symbol(std::string name, type* t);
+        symbol* push_symbol(std::string name, type* t);
         symbol& lookup_symbol(std::string name);
         struct_member& lookup_member(std::string name, struct_type* st);
         type* get_type(function_call_expr* fc);
