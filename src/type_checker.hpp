@@ -22,7 +22,7 @@ namespace koala {
         symbol* push_symbol(std::string name, type* t);
         symbol& lookup_symbol(std::string name);
         struct_member& lookup_member(std::string name, struct_type* st);
-        type* get_type(function_call_expr* fc);
+        type* get_type(function_call* fc);
         type* get_type(array_access* aa);
         type* get_type(integer_constant* ic);
         type* get_type(string_literal* sl);
@@ -31,9 +31,9 @@ namespace koala {
         type* get_type(name_ref* nr);
         type* get_type(member_access* ma);
         type* get_type(expression* e);
+        void check_statement(expression_statement* ss);
         void check_statement(variable_def* vd);
         void check_statement(assignment* a);
-        void check_statement(function_call* fc);
         void check_statement(return_expr* re);
         void check_statement(function_def* fd);
         void check_statement(statement* s);

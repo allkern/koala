@@ -6,6 +6,7 @@
 
 #include <string>
 #include <vector>
+#include <cassert>
 
 namespace koala {
     class array_access : public expression {
@@ -19,6 +20,9 @@ namespace koala {
 
         std::string print(int hierarchy) override {
             std::string str;
+
+            assert(index);
+            assert(expr);
 
             str += std::string(hierarchy * 4, ' ') + expr->print(0) + "[";
             str += index->print(0) + "]";

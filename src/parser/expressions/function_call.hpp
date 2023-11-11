@@ -8,7 +8,7 @@
 #include <vector>
 
 namespace koala {
-    class function_call_expr : public expression {
+    class function_call : public expression {
     public:
         expression* expr;
         std::vector <expression*> args;

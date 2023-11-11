@@ -11,7 +11,5 @@ fn bar(a: int) {
 fn main(a: int, str: koala_string) {
     mut f: typeof(foo);
 
-    f = bar;
-
-    return f(2);
+    return __func__;
 }

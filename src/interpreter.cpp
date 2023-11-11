@@ -1,5 +1,7 @@
 #include "interpreter.hpp"
 
+#include <algorithm>
+
 std::unordered_map <std::string, int> g_binary_op_map = {
     { "==" , koala::BN_COMPARE_EQ },
     { "!=" , koala::BN_COMPARE_NE },
@@ -111,45 +113,25 @@ uint64_t get_value(std::string v, koala::integral_type* it) {
     return value;
 }
 
-koala::interpreter::value* koala::interpreter::evaluate_expression(function_call_expr* fc) {
-    if (fc->expr->get_tag() != EX_NAME_REF) {
-        printf("Non-name-reference callee is not allowed in interpreter\n");
+koala::interpreter::value* koala::interpreter::evaluate_expression(function_call* fc) {
+    symbol* sym = search_symbol(fc->expr);
+
+    if (sym->v->get_class() != TP_FUNCTION) {
+        printf("Symbol \'%s\' does not refer to a function type object\n");
 
         std::exit(1);
     }
 
-    std::string callee = ((name_ref*)fc->expr)->name;
-
-    variable* var = search_variable(callee);
+    function_value* fv = (function_value*)sym->v;
 
     std::vector <value*> args;
 
-    if (!var) {
-        constant* c = search_constant(callee);
+    for (expression* expr : fc->args)
+        args.push_back(evaluate_expression(expr));
 
-        if (!c) {
-            printf("Name \'%s\' was not found\n",
-                callee.c_str()
-            );
-
-            std::exit(1);
-        }
-
-        for (expression* expr : fc->args)
-            args.push_back(evaluate_expression(expr));
-
-        return call_function(callee, args);
-    } else {
-        for (expression* expr : fc->args)
-            args.push_back(evaluate_expression(expr));
-
-        return call_function(callee, args);
-    }
+    return call_function(fv->def, args);
 }
 
-// a[b] a: char*
-// char
-// 
 koala::interpreter::value* koala::interpreter::evaluate_expression(array_access* aa) {
     value* expr_eval = evaluate_expression(aa->expr);
 
@@ -204,7 +186,7 @@ koala::interpreter::value* koala::interpreter::evaluate_expression(string_litera
     struct_value sv;
     struct_type* st = (struct_type*)sl->t;
 
-    variable size, ptr;
+    symbol size, ptr;
 
     size_iv.t = (integral_type*)st->members[0].t;
     size_iv.value = sl->value.size();
@@ -213,12 +195,10 @@ koala::interpreter::value* koala::interpreter::evaluate_expression(string_litera
 
     size.mut = false;
     size.name = st->members[0].name;
-    size.t = st->members[0].t;
     size.v = new integral_value(size_iv);
 
     ptr.mut = false;
     ptr.name = "ptr";
-    ptr.t = st->members[1].t;
     ptr.v = new pointer_value(ptr_pv);
 
     sv.t = (struct_type*)sl->t;
@@ -273,23 +253,7 @@ koala::interpreter::value* koala::interpreter::evaluate_expression(unary_op* uo)
 }
 
 koala::interpreter::value* koala::interpreter::evaluate_expression(name_ref* nr) {
-    variable* var = search_variable(nr->name);
-
-    if (!var) {
-        constant* c = search_constant(nr->name);
-
-        if (!c) {
-            printf("Name \'%s\' was not found\n",
-                nr->name.c_str()
-            );
-
-            std::exit(1);
-        }
-
-        return c->v;
-    } else {
-        return var->v;
-    }
+    return search_symbol(nr->name)->v;
 }
 
 koala::interpreter::value* koala::interpreter::evaluate_expression(member_access* ma) {
@@ -303,9 +267,9 @@ koala::interpreter::value* koala::interpreter::evaluate_expression(member_access
 
     struct_value* sv = (struct_value*)expr_eval;
 
-    variable* m = search_member(ma->member, sv);
+    symbol* member = search_member(ma->member, sv);
 
-    return m->v;
+    return member->v;
 }
 
 koala::interpreter::value* koala::interpreter::evaluate_expression(expression* expr) {
@@ -339,7 +303,7 @@ koala::interpreter::value* koala::interpreter::evaluate_expression(expression* e
         } break;
 
         case EX_FUNCTION_CALL: {
-            return evaluate_expression((function_call_expr*)expr);
+            return evaluate_expression((function_call*)expr);
         } break;
     }
 
@@ -351,69 +315,47 @@ koala::interpreter::value* koala::interpreter::evaluate_expression(expression* e
 }
 
 void koala::interpreter::execute_statement(variable_def* vd) {
-    if (search_variable(vd->name)) {
-        printf("Attempting to define a variable with existing name \'%s\'\n",
-            vd->name.c_str()
-        );
-
-        std::exit(1);
-    } else if (search_constant(vd->name)) {
+    if (search_symbol(vd->name)) {
         printf("Attempting to define a variable with existing name \'%s\'\n",
             vd->name.c_str()
         );
 
         std::exit(1);
     }
-
-    variable var;
-
-    var.mut = vd->mut;
-    var.name = vd->name;
-    var.t = vd->t;
 
     if (vd->init) {
-        var.v = evaluate_expression(vd->init);
+        add_local_symbol(vd->name, evaluate_expression(vd->init), vd->mut);
+    } else {
+        // To-do: Default construct types
+
+        add_local_symbol(vd->name, nullptr, vd->mut);
     }
-
-    // To-do: Default construct types
-
-    add_variable(var);
 }
 
 void koala::interpreter::execute_statement(assignment* a) {
-    variable* var = search_variable(a->dest);
+    symbol* sym = search_symbol(a->dst);
 
-    if (!var) {
-        printf("Variable with name \'%s\' was not found\n",
-            a->dest.c_str()
-        );
-
-        std::exit(1);
-    }
-
-    if (!var->mut) {
-        printf("Cannot assign a value to an immutable variable\n");
+    if (!sym->mut) {
+        printf("Cannot assign a value to an immutable object\n");
 
         std::exit(1);
     }
 
     if (a->op == "=") {
-        value* old_value = var->v;
-
-        var->v = evaluate_expression(a->src);
+        sym->v = evaluate_expression(a->src);
 
         return;
     }
 
     value* eval_rhs = evaluate_expression(a->src);
 
-    if ((var->t->get_class() != TP_INTEGRAL) || (eval_rhs->get_class() != TP_INTEGRAL)) {
-        printf("Cannot perform a binary operation between non-integral types\n");
+    if ((sym->v->get_class() != TP_INTEGRAL) || (eval_rhs->get_class() != TP_INTEGRAL)) {
+        printf("Cannot perform a binary operation between objects of non-integral types\n");
 
         std::exit(1);
     }
 
-    uint64_t lhs = ((integral_value*)var->v)->value;
+    uint64_t lhs = ((integral_value*)sym->v)->value;
     uint64_t rhs = ((integral_value*)eval_rhs)->value;
 
     // All assignment operators end with '='
@@ -424,42 +366,15 @@ void koala::interpreter::execute_statement(assignment* a) {
 
     op.pop_back();
 
-    binary_operation(g_binary_op_map[op], ((integral_value*)var->v)->value, lhs, rhs);
-}
-
-void koala::interpreter::execute_statement(function_call* fc) {
-    variable* var = search_variable(fc->callee);
-
-    std::vector <value*> args;
-
-    if (!var) {
-        constant* c = search_constant(fc->callee);
-
-        if (!c) {
-            printf("Name \'%s\' was not found\n",
-                fc->callee.c_str()
-            );
-
-            std::exit(1);
-        }
-
-        for (expression* expr : fc->args)
-            args.push_back(evaluate_expression(expr));
-
-        call_function(fc->callee, args);
-    } else {
-        for (expression* expr : fc->args)
-            args.push_back(evaluate_expression(expr));
-
-        call_function(fc->callee, args);
-    }
+    binary_operation(g_binary_op_map[op], ((integral_value*)sym->v)->value, lhs, rhs);
 }
 
 void koala::interpreter::execute_statement(return_expr* re) {
-    if (m_return_value.top())
-        delete m_return_value.top();
+    m_return_stack.top() = evaluate_expression(re->expr);
+}
 
-    m_return_value.push(evaluate_expression(re->expr));
+void koala::interpreter::execute_statement(expression_statement* es) {
+    value* discard = evaluate_expression(es->expr);
 }
 
 void koala::interpreter::execute_statement(function_def* fd) {
@@ -472,10 +387,6 @@ bool koala::interpreter::execute_statement(statement* s) {
     switch (s->get_tag()) {
         case ST_VARIABLE_DEF: {
             execute_statement((variable_def*)s);
-        } break;
-
-        case ST_FUNCTION_CALL: {
-            execute_statement((function_call*)s);
         } break;
 
         case ST_FUNCTION_DEF: {
@@ -491,6 +402,10 @@ bool koala::interpreter::execute_statement(statement* s) {
 
             return false;
         } break;
+
+        case ST_EXPRESSION: {
+            execute_statement((expression_statement*)s);
+        } break;
     }
 
     return true;
@@ -501,29 +416,28 @@ void koala::interpreter::init() {
         if (s->get_tag() == ST_VARIABLE_DEF) {
             variable_def* vd = (variable_def*)s;
 
-            variable var;
+            symbol sym;
 
-            var.t = vd->t;
-            var.mut = vd->mut;
-            var.name = vd->name;
+            sym.mut = vd->mut;
+            sym.name = vd->name;
             
             if (vd->init) {
-                var.v = evaluate_expression(vd->init);
+                sym.v = evaluate_expression(vd->init);
             }
 
-            m_global_variables.push_back(var);
+            m_globals.push_back(sym);
         } else if (s->get_tag() == ST_FUNCTION_DEF) {
             function_def* fd = (function_def*)s;
             function_value fv;
+            symbol sym;
 
             fv.def = fd;
 
-            constant c;
+            sym.mut = false;
+            sym.name = fd->name;
+            sym.v = new function_value(fv);
 
-            c.name = fd->name;
-            c.v = new function_value(fv);
-
-            m_constants.push_back(c);
+            m_globals.push_back(sym);
         } else {
             printf("Statements in global scope are not allowed\n");
 
@@ -532,10 +446,10 @@ void koala::interpreter::init() {
     }
 }
 
-koala::interpreter::variable* koala::interpreter::search_member(std::string name, struct_value* sv) {
-    for (variable& v : sv->members)
-        if (v.name == name)
-            return &v;
+koala::interpreter::symbol* koala::interpreter::search_member(std::string name, struct_value* sv) {
+    for (symbol& sym : sv->members)
+        if (sym.name == name)
+            return &sym;
 
     printf("Could not find member with name \'%s\'\n",
         name.c_str()
@@ -544,77 +458,82 @@ koala::interpreter::variable* koala::interpreter::search_member(std::string name
     std::exit(1);
 }
 
-koala::interpreter::variable* koala::interpreter::search_variable(std::string name) {
-    if (!m_local_variables.size())
-        return nullptr;
-
-    for (variable& v : m_local_variables.top())
-        if (v.name == name)
-            return &v;
+koala::interpreter::symbol* koala::interpreter::search_symbol(std::string name) {
+    if (m_locals.size())
+        for (symbol& sym : m_locals.top())
+            if (sym.name == name)
+                return &sym;
     
-    for (variable& v : m_global_variables)
-        if (v.name == name)
-            return &v;
+    for (symbol& sym : m_globals)
+        if (sym.name == name)
+            return &sym;
     
     return nullptr;
 }
 
-koala::interpreter::constant* koala::interpreter::search_constant(std::string name) {
-    for (constant& c : m_constants)
-        if (c.name == name)
-            return &c;
+koala::interpreter::symbol* koala::interpreter::search_symbol(koala::expression* expr) {
+    symbol* sym = nullptr;
 
-    return nullptr;
-}
+    switch (expr->get_tag()) {
+        case EX_NAME_REF: {
+            name_ref* nr = (name_ref*)expr;
 
-void koala::interpreter::add_variable(koala::interpreter::variable& v) {
-    m_local_variables.top().push_back(v);
-}
+            sym = search_symbol(nr->name);
+        } break;
 
-koala::function_def* koala::interpreter::search_function(std::string name) {
-    variable* v = search_variable(name);
+        case EX_MEMBER_ACCESS: {
+            member_access* ma = (member_access*)expr;
 
-    if (!v) {
-        constant* c = search_constant(name);
+            symbol* struct_sym = search_symbol(ma->expr);
 
-        if (!c) {
-            printf("Could not find function \'%s\'\n", name.c_str());
+            if (struct_sym->v->get_class() != TP_STRUCT) {
+                printf("Symbol \'%s\' does not refer to a struct type object\n",
+                    struct_sym->name
+                );
 
-            std::exit(1);
+                std::exit(1);
+            }
 
-            return nullptr;
-        }
+            struct_value* sv = (struct_value*)struct_sym->v;
 
-        if (c->v->get_class() != TP_FUNCTION) {
-            printf("Symbol \'%s\' is not a function type", c->name.c_str());
+            sym = search_member(ma->member, sv);
+        } break;
 
-            *(int*)0 = 0;
-
-            std::exit(1);
-
-            return nullptr;
-        }
-
-        return ((function_value*)c->v)->def;
-    } else {
-        if (v->v->get_class() != TP_FUNCTION) {
-            printf("Symbol \'%s\' is not a function type", v->name.c_str());
-            *(int*)0 = 0;
+        case EX_ARRAY_ACCESS: {
+            printf("Getting a reference to an array object is forbidden in interpreter\n");
 
             std::exit(1);
+        } break;
 
-            return nullptr;
-        }
+        default: {
+            printf("Attempting to get a reference to a non-referenceable type\n");
 
-        return ((function_value*)v->v)->def;
+            std::exit(1);
+        } break;
     }
+
+    if (!sym) {
+        printf("Could not find a symbol in expression \'%s\'\n", expr->print(0));
+
+        std::exit(1);
+    }
+
+    return sym;
 }
 
-koala::interpreter::value* koala::interpreter::call_function(std::string name, std::vector <koala::interpreter::value*> args) {
-    function_def* fd = search_function(name);
+void koala::interpreter::add_local_symbol(std::string name, koala::interpreter::value* v, bool mut) {
+    symbol sym;
 
-    m_local_variables.push(std::vector <variable>());
-    m_return_value.push(nullptr);
+    sym.mut = mut;
+    sym.name = name;
+    sym.v = v;
+
+    m_locals.top().push_back(sym);
+}
+
+koala::interpreter::value* koala::interpreter::call_function(koala::function_def* fd, std::vector <koala::interpreter::value*> args) {
+    m_locals.push(std::vector <symbol>());
+    m_return_stack.push(nullptr);
 
     if (args.size() != fd->args.size()) {
         printf("Calling function with incorrect number of arguments\n");
@@ -633,27 +552,41 @@ koala::interpreter::value* koala::interpreter::call_function(std::string name, s
                 std::exit(1);
             }
 
-            variable var;
-
-            var.mut = fd->args[i].mut;
-            var.name = fd->args[i].name;
-            var.t = fd->args[i].t;
-            var.v = args[i];
-
-            add_variable(var);
+            add_local_symbol(fd->args[i].name, args[i], fd->args[i].mut);
         }
     }
 
-    for (statement* s : fd->body) {
+    add_local_symbol("__func__", make_value(fd->name), false);
+
+    for (statement* s : fd->body)
         if (!execute_statement(s))
             break;
-    }
 
-    m_local_variables.pop();
+    m_locals.pop();
 
-    value* return_value = m_return_value.top();
+    value* return_value = m_return_stack.top();
 
-    m_return_value.pop();
+    m_return_stack.pop();
 
     return return_value;
+}
+
+koala::interpreter::value* koala::interpreter::call_function(std::string name, std::vector <koala::interpreter::value*> args) {
+    symbol* sym = search_symbol(name);
+
+    if (!sym) {
+        printf("Could not find symbol \'%s\'\n", name.c_str());
+
+        std::exit(1);
+    }
+
+    if (sym->v->get_class() != TP_FUNCTION) {
+        printf("Symbol \'%s\' is not a function", name.c_str());
+
+        std::exit(1);
+    }
+
+    function_value* fv = (function_value*)sym->v;
+
+    return call_function(fv->def, args);
 }

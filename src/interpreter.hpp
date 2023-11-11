@@ -60,7 +60,7 @@ namespace koala {
         type_system*              m_ts = nullptr;
 
     public:
-        class variable;
+        struct symbol;
 
         class value {
         public:
@@ -86,7 +86,7 @@ namespace koala {
         public:
             struct_type* t = nullptr;
 
-            std::vector <variable> members;
+            std::vector <symbol> members;
 
             int get_class() override {
                 return TP_STRUCT;
@@ -128,31 +128,19 @@ namespace koala {
             }
         };
 
-        class variable {
-        public:
-            type* t = nullptr;
-            value* v = nullptr;
-            std::string name;
-
+        struct symbol {
             bool mut = false;
-            void assign(value* v);
-            value* get_value();
-        };
-
-        class constant {
-        public:
-            std::string name;
             value* v = nullptr;
+            std::string name;
         };
 
     private:
-        std::stack <std::vector <variable>> m_local_variables;
-        std::vector <variable>              m_global_variables;
-        std::vector <constant>              m_constants;
-        std::stack <value*>                 m_return_value;
+        std::stack <std::vector <symbol>>   m_locals;
+        std::vector <symbol>                m_globals;
+        std::stack <value*>                 m_return_stack;
 
         value* get_default_value(type* t);
-        value* evaluate_expression(function_call_expr* fc);
+        value* evaluate_expression(function_call* fc);
         value* evaluate_expression(array_access* aa);
         value* evaluate_expression(integer_constant* ic);
         value* evaluate_expression(string_literal* sl);
@@ -161,17 +149,16 @@ namespace koala {
         value* evaluate_expression(name_ref* nr);
         value* evaluate_expression(member_access* ma);
         value* evaluate_expression(expression* expr);
+        void execute_statement(expression_statement* es);
         void execute_statement(variable_def* vd);
         void execute_statement(assignment* a);
-        void execute_statement(function_call* fc);
         void execute_statement(return_expr* re);
         void execute_statement(function_def* fd);
         bool execute_statement(statement* s);
-        function_def* search_function(std::string name);
-        variable* search_member(std::string name, struct_value* sv);
-        variable* search_variable(std::string name);
-        constant* search_constant(std::string name);
-        void add_variable(variable& v);
+        symbol* search_symbol(expression* expr);
+        symbol* search_member(std::string name, struct_value* sv);
+        symbol* search_symbol(std::string name);
+        void add_local_symbol(std::string name, value* v, bool mut);
 
     public:
         interpreter(parser& p) :
@@ -179,6 +166,7 @@ namespace koala {
 
         void init();
         value* call_function(std::string name, std::vector <value*> args);
+        value* call_function(function_def* fd, std::vector <value*> args);
 
         value* make_value(int v) {
             integral_value iv;
@@ -195,7 +183,7 @@ namespace koala {
             struct_value sv;
             struct_type* st = (struct_type*)m_ts->get_type("koala_string");
 
-            variable size, ptr;
+            symbol size, ptr;
 
             size_iv.t = (integral_type*)st->members[0].t;
             size_iv.value = s.size();
@@ -204,12 +192,10 @@ namespace koala {
 
             size.mut = false;
             size.name = st->members[0].name;
-            size.t = st->members[0].t;
             size.v = new integral_value(size_iv);
 
             ptr.mut = false;
             ptr.name = "ptr";
-            ptr.t = st->members[1].t;
             ptr.v = new pointer_value(ptr_pv);
 
             sv.t = st;

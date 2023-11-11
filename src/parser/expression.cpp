@@ -154,7 +154,7 @@ koala::expression* koala::parser::parse_primary() {
             } break;
 
             case TK_OPENING_PARENT: {
-                function_call_expr fc;
+                function_call fc;
 
                 fc.expr = expr;
 
@@ -177,7 +177,7 @@ koala::expression* koala::parser::parse_primary() {
 
                 m_current = m_lexer->pop();
 
-                expr = new function_call_expr(fc);
+                expr = new function_call(fc);
             } break;
 
             case TK_OPENING_BRACKET: {

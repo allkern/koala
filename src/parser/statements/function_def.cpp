@@ -79,15 +79,10 @@ koala::statement* koala::parser::parse_function_def() {
     m_current = m_lexer->pop();
 
     while (m_current.type != TK_CLOSING_BRACE) {
-        fd.body.push_back(parse_statement());
+        statement* stmt = parse_statement();
 
-        if (m_current.type != TK_SEMICOLON) {
-            printf("Expected \';\' after statement");
-
-            std::exit(1);
-        }
-
-        m_current = m_lexer->pop();
+        if (stmt)
+            fd.body.push_back(stmt);
     }
 
     m_current = m_lexer->pop();

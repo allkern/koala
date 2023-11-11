@@ -46,6 +46,8 @@ koala::type* koala::type_checker::complete_type(koala::type* t) {
             return st;
         } break;
     }
+
+    return nullptr;
 }
 
 koala::symbol* koala::type_checker::push_symbol(std::string name, koala::type* t) {
@@ -201,7 +203,7 @@ koala::type* koala::type_checker::get_type(koala::array_access* aa) {
     return ptr_type->target;
 }
 
-koala::type* koala::type_checker::get_type(koala::function_call_expr* fc) {
+koala::type* koala::type_checker::get_type(koala::function_call* fc) {
     type* callee_type = get_type(fc->expr);
 
     if (callee_type->get_class() != TP_FUNCTION) {
@@ -245,7 +247,7 @@ koala::type* koala::type_checker::get_type(koala::function_call_expr* fc) {
 koala::type* koala::type_checker::get_type(koala::expression* e) {
     switch (e->get_tag()) {
         case EX_FUNCTION_CALL: {
-            return get_type((function_call_expr*)e);
+            return get_type((function_call*)e);
         } break;
 
         case EX_ARRAY_ACCESS: {
@@ -314,57 +316,21 @@ void koala::type_checker::check_statement(koala::variable_def* vd) {
 }
 
 void koala::type_checker::check_statement(koala::assignment* a) {
-    symbol& s = lookup_symbol(a->dest);
-
+    type* dst_type = get_type(a->dst);
     type* src_type = get_type(a->src);
 
-    if (s.t->get_class() != src_type->get_class()) {
-        printf("Assigning value of type \'%s\' to variable of type \'%s\'\n",
+    if (dst_type->get_class() != src_type->get_class()) {
+        printf("Assigning value of type \'%s\' to object of type \'%s\'\n",
             src_type->str().c_str(),
-            s.t->str().c_str()
+            dst_type->str().c_str()
         );
 
         std::exit(1);
     }
 }
 
-void koala::type_checker::check_statement(koala::function_call* fc) {
-    symbol& s = lookup_symbol(fc->callee);
-
-    if (s.t->get_class() != TP_FUNCTION) {
-        printf("Attempting to call a non-function object of type \'%s\'\n",
-            s.t->str().c_str()
-        );
-
-        std::exit(1);
-    }
-
-    function_type* ft = (function_type*)s.t;
-
-    if (ft->arg_types.size() < fc->args.size()) {
-        printf("Too many arguments in function call\n");
-
-        std::exit(1);
-    } else if (ft->arg_types.size() > fc->args.size()) {
-        printf("Too few arguments in function call\n");
-
-        std::exit(1);
-    }
-
-    for (int i = 0; i < fc->args.size(); i++) {
-        type* call_arg_type = get_type(fc->args[i]);
-        type* def_arg_type = ft->arg_types[i];
-
-        if (call_arg_type->get_class() != def_arg_type->get_class()) {
-            printf("Argument %i of type \'%s\' in function call doesn't match function argument of type \'%s\'\n",
-                i,
-                call_arg_type->str().c_str(),
-                def_arg_type->str().c_str()
-            );
-
-            std::exit(1);
-        }
-    }
+void koala::type_checker::check_statement(koala::expression_statement* es) {
+    type* discard = get_type(es->expr);
 }
 
 void koala::type_checker::check_statement(koala::return_expr* re) {
@@ -432,10 +398,6 @@ void koala::type_checker::check_statement(koala::statement* s) {
             check_statement((variable_def*)s);
         } break;
 
-        case ST_FUNCTION_CALL: {
-            check_statement((function_call*)s);
-        } break;
-
         case ST_FUNCTION_DEF: {
             check_statement((function_def*)s);
         } break;
@@ -446,6 +408,10 @@ void koala::type_checker::check_statement(koala::statement* s) {
 
         case ST_RETURN_EXPR: {
             check_statement((return_expr*)s);
+        } break;
+
+        case ST_EXPRESSION: {
+            check_statement((expression_statement*)s);
         } break;
     }
 }

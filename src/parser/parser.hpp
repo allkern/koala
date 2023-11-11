@@ -17,9 +17,9 @@
 #include "expressions/function_call.hpp"
 #include "expressions/array_access.hpp"
 #include "statement.hpp"
+#include "statements/expression_statement.hpp"
 #include "statements/assignment.hpp"
 #include "statements/function_def.hpp"
-#include "statements/function_call.hpp"
 #include "statements/variable_def.hpp"
 #include "statements/return_expr.hpp"
 
@@ -38,8 +38,7 @@ namespace koala {
         expression* parse_expression();
         expression* parse_expression_impl(expression* lhs, int mp);
         statement* parse_statement();
-        statement* parse_assignment(std::string name);
-        statement* parse_function_call(std::string name);
+        statement* parse_assignment(expression* expr);
         statement* parse_function_def();
         statement* parse_variable_def();
         statement* parse_return_expr();
@@ -51,6 +50,5 @@ namespace koala {
         void parse();
         std::vector <statement*>* get_ast();
         type_system* get_type_system();
-        void execute_function(std::string name);
     };
 }

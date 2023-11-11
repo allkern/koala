@@ -9,22 +9,23 @@
 #include <vector>
 
 namespace koala {
-    class assignment : public statement {
+    class expression_statement : public statement {
     public:
-        std::string op;
-        expression* dst;
-        expression* src;
+        expression* expr = nullptr;
 
         int get_tag() override {
-            return ST_ASSIGNMENT;
+            return ST_EXPRESSION;
         }
 
         std::string print(int hierarchy) override {
             std::string str;
 
-            str += std::string(hierarchy * 4, ' ') + dst->print(0) + " " + op + " " + src->print(0) + ";\n";
+            str += std::string(hierarchy * 4, ' ') + expr->print(0) + ";\n";
 
             return str;
         }
+
+        expression_statement(expression* expr) :
+            expr(expr) {};
     };
 }

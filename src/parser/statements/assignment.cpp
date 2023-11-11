@@ -1,9 +1,9 @@
 #include "assignment.hpp"
 
-koala::statement* koala::parser::parse_assignment(std::string name) {
+koala::statement* koala::parser::parse_assignment(koala::expression* expr) {
     assignment a;
 
-    a.dest = name;
+    a.dst = expr;
     a.op = m_current.text;
 
     m_current = m_lexer->pop();
