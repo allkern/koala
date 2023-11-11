@@ -29,7 +29,9 @@ std::unordered_map <std::string, int> g_binary_op_map = {
 
 std::unordered_map <std::string, int> g_unary_op_map = {
     { "~"  , koala::UN_BITWISE_NOT },
-    { "!"  , koala::UN_LOGICAL_NOT }
+    { "!"  , koala::UN_LOGICAL_NOT },
+    { "++" , koala::UN_INCREMENT   },
+    { "--" , koala::UN_DECREMENT   }
 };
 
 std::unordered_map <std::string, int> g_assignment_op_map = {
@@ -241,9 +243,71 @@ koala::interpreter::value* koala::interpreter::evaluate_expression(unary_op* uo)
         std::exit(1);
     }
 
-    uint64_t value = ((integral_value*)eval_expr)->value;
+    int op = g_unary_op_map[uo->op];
 
     integral_value iv;
+
+    switch (op) {
+        case UN_INCREMENT: {
+            symbol* sym = search_symbol(uo->expr);
+
+            if (sym->v->get_class() != TP_INTEGRAL) {
+                printf("Can not increment a non-integral object\n");
+
+                std::exit(1);
+            }
+
+            integral_value* sym_iv = (integral_value*)sym->v;
+
+            if (uo->post) {
+                iv.t = sym_iv->t;
+                iv.value = sym_iv->value;
+
+                sym_iv->value += 1;
+            } else {
+                sym_iv->value += 1;
+
+                iv.t = sym_iv->t;
+                iv.value = sym_iv->value;
+            }
+
+            return new integral_value(iv);
+        } break;
+
+        case UN_DECREMENT: {
+            symbol* sym = search_symbol(uo->expr);
+
+            if (sym->v->get_class() != TP_INTEGRAL) {
+                printf("Can not increment a non-integral object\n");
+
+                std::exit(1);
+            }
+
+            integral_value* sym_iv = (integral_value*)sym->v;
+
+            if (uo->post) {
+                iv.t = sym_iv->t;
+                iv.value = sym_iv->value;
+
+                sym_iv->value -= 1;
+            } else {
+                sym_iv->value -= 1;
+
+                iv.t = sym_iv->t;
+                iv.value = sym_iv->value;
+            }
+
+            return new integral_value(iv);
+        } break;
+    }
+
+    if (uo->post) {
+        printf("Invalid post unary operator \'%s\'\n", uo->op.c_str());
+
+        std::exit(1);
+    }
+
+    uint64_t value = ((integral_value*)eval_expr)->value;
 
     iv.t = ((integral_value*)eval_expr)->t;
     

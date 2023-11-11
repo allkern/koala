@@ -28,7 +28,8 @@ koala::statement* koala::parser::parse_statement() {
             stmt = parse_variable_def();
         } break;
 
-        case TK_IDENT: case TK_OPENING_PARENT: case TK_INTEGER: {
+        case TK_IDENT: case TK_OPENING_PARENT:
+        case TK_INTEGER: case TK_UNARY_OPERATOR: {
             expression* expr = parse_expression();
 
             if (m_current.type == TK_ASSIGNMENT_OPERATOR) {

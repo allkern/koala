@@ -32,7 +32,9 @@ namespace koala {
 
     enum : int {
         UN_BITWISE_NOT,
-        UN_LOGICAL_NOT
+        UN_LOGICAL_NOT,
+        UN_INCREMENT,
+        UN_DECREMENT
     };
 
     enum : int {

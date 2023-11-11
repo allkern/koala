@@ -3,22 +3,14 @@ fn print(str: koala_string) {
     mut i = 0;
 
     while (i != str.size) {
-        putchar(ptr[i]);
-
-        i += 1;
+        putchar(ptr[i++]);
     }
 
     return i;
 }
 
 fn main(a: int, str: koala_string) {
-    mut cnt = 10;
-
-    while (cnt) {
-        print("Hello, world!\n");
-
-        cnt -= 1;
-    }
+    print("Hello, world!\n");
 
     return 0;
 }
