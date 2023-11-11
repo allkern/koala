@@ -5,13 +5,18 @@ bool iseof(char c) {
 }
 
 std::unordered_map <std::string, int> g_ident_keyword_map = {
-    { "fn"      , koala::TK_KEYWORD_FN },
-    { "const"   , koala::TK_KEYWORD_CONST },
+    { "fn"      , koala::TK_KEYWORD_FN     },
+    { "const"   , koala::TK_KEYWORD_CONST  },
     { "static"  , koala::TK_KEYWORD_STATIC },
-    { "mut"     , koala::TK_KEYWORD_MUT },
-    { "let"     , koala::TK_KEYWORD_LET },
+    { "mut"     , koala::TK_KEYWORD_MUT    },
+    { "let"     , koala::TK_KEYWORD_LET    },
     { "typeof"  , koala::TK_KEYWORD_TYPEOF },
-    { "return"  , koala::TK_KEYWORD_RETURN }
+    { "return"  , koala::TK_KEYWORD_RETURN },
+    { "while"   , koala::TK_KEYWORD_WHILE  },
+    { "for"     , koala::TK_KEYWORD_FOR    },
+    { "do"      , koala::TK_KEYWORD_DO     },
+    { "if"      , koala::TK_KEYWORD_IF     },
+    { "else"    , koala::TK_KEYWORD_ELSE   }
 };
 
 const char* g_token_names[] = {

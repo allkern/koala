@@ -377,6 +377,25 @@ void koala::interpreter::execute_statement(expression_statement* es) {
     value* discard = evaluate_expression(es->expr);
 }
 
+void koala::interpreter::execute_statement(while_loop* wl) {
+    value* cond_eval = evaluate_expression(wl->cond);
+
+    if (cond_eval->get_class() != TP_INTEGRAL) {
+        printf("While loop condition is not of integral type\n");
+
+        std::exit(1);
+    }
+
+    integral_value* iv = (integral_value*)cond_eval;
+
+    while (iv->value) {
+        for (statement* s : wl->body)
+            execute_statement(s);
+
+        iv = (integral_value*)evaluate_expression(wl->cond);
+    }
+}
+
 void koala::interpreter::execute_statement(function_def* fd) {
     std::printf("Nested functions are not allowed\n");
 
@@ -397,6 +416,10 @@ bool koala::interpreter::execute_statement(statement* s) {
             execute_statement((assignment*)s);
         } break;
 
+        case ST_WHILE_LOOP: {
+            execute_statement((while_loop*)s);
+        } break;
+
         case ST_RETURN_EXPR: {
             execute_statement((return_expr*)s);
 
@@ -412,6 +435,18 @@ bool koala::interpreter::execute_statement(statement* s) {
 }
 
 void koala::interpreter::init() {
+    function_value* fv = new function_value();
+    function_def* fd = new function_def();
+
+    fd->args.push_back(function_arg { false, "c", m_ts->get_type("char") });
+    fd->body.clear();
+    fd->name = "putchar";
+    fd->return_type = m_ts->get_type("char");
+
+    fv->def = fd;
+
+    m_globals.push_back(symbol { false, fv, "putchar" });
+
     for (statement* s : *m_ast) {
         if (s->get_tag() == ST_VARIABLE_DEF) {
             variable_def* vd = (variable_def*)s;
@@ -532,8 +567,34 @@ void koala::interpreter::add_local_symbol(std::string name, koala::interpreter::
 }
 
 koala::interpreter::value* koala::interpreter::call_function(koala::function_def* fd, std::vector <koala::interpreter::value*> args) {
+    if (fd->name == "putchar") {
+        if (args.size() != fd->args.size()) {
+            printf("Calling function with incorrect number of arguments\n");
+
+            std::exit(1);
+        }
+
+        if (args[0]->get_class() != TP_INTEGRAL) {
+            printf("Argument %i is incompatible with function argument of type \"%s\"",
+                1,
+                fd->args[0].t->str().c_str()
+            );
+
+            std::exit(1);
+        }
+
+        integral_value* iv = (integral_value*)args[0];
+        integral_value return_iv;
+
+        return_iv.t = (integral_type*)m_ts->get_type("char");
+        return_iv.value = std::putchar(iv->value);
+
+        return new integral_value(return_iv);
+    }
+
     m_locals.push(std::vector <symbol>());
-    m_return_stack.push(nullptr);
+
+    add_local_symbol("__func__", make_value(fd->name), false);
 
     if (args.size() != fd->args.size()) {
         printf("Calling function with incorrect number of arguments\n");
@@ -556,7 +617,7 @@ koala::interpreter::value* koala::interpreter::call_function(koala::function_def
         }
     }
 
-    add_local_symbol("__func__", make_value(fd->name), false);
+    m_return_stack.push(nullptr);
 
     for (statement* s : fd->body)
         if (!execute_statement(s))

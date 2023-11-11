@@ -8,8 +8,19 @@ fn bar(a: int) {
     return square * a;
 }
 
-fn main(a: int, str: koala_string) {
-    mut f: typeof(foo);
+fn print(str: koala_string) {
+    let ptr = str.ptr;
+    mut i = 0;
 
-    return __func__;
+    while (i != str.size) {
+        putchar(ptr[i]);
+
+        i += 1;
+    }
+
+    return i;
+}
+
+fn main(a: int, str: koala_string) {
+    return print("Hello, world!");
 }

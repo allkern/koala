@@ -360,10 +360,22 @@ void koala::type_checker::check_statement(koala::return_expr* re) {
     }
 }
 
+void koala::type_checker::check_statement(koala::while_loop* wl) {
+    if (get_type(wl->cond)->get_class() != TP_INTEGRAL) {
+        printf("Condition of while loop is not an object of integral type\n");
+
+        std::exit(1);
+    }
+
+    for (statement* s : wl->body)
+        check_statement(s);
+}
+
 void koala::type_checker::check_statement(koala::function_def* fd) {
     function_type* ft = new function_type();
 
     m_local_symbols.clear();
+    m_local_symbols.push_back(symbol{ m_ts->get_type("koala_string"), "__func__" });
 
     if (fd->return_type)
         ft->return_type = complete_type(fd->return_type);
@@ -413,10 +425,23 @@ void koala::type_checker::check_statement(koala::statement* s) {
         case ST_EXPRESSION: {
             check_statement((expression_statement*)s);
         } break;
+
+        case ST_WHILE_LOOP: {
+            check_statement((while_loop*)s);
+        } break;
     }
 }
 
 void koala::type_checker::check() {
+    function_type* ft = new function_type();
+
+    ft->arg_types.push_back(m_ts->get_type("char"));
+    ft->return_type = m_ts->get_type("char");
+
+    ft = (function_type*)m_ts->add_type(ft);
+
+    m_global_symbols.push_back(symbol {ft, "putchar"});
+
     for (statement* s : *m_ast)
         check_statement(s);
 }

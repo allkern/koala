@@ -22,6 +22,7 @@
 #include "statements/function_def.hpp"
 #include "statements/variable_def.hpp"
 #include "statements/return_expr.hpp"
+#include "statements/while_loop.hpp"
 
 #include "common.hpp"
 
@@ -42,6 +43,7 @@ namespace koala {
         statement* parse_function_def();
         statement* parse_variable_def();
         statement* parse_return_expr();
+        statement* parse_while_loop();
     
     public:
         parser(lexer& lexer) :

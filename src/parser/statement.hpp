@@ -9,7 +9,10 @@ namespace koala {
         ST_STRUCT_DEF,
         ST_ASSIGNMENT,
         ST_EXPRESSION,
-        ST_RETURN_EXPR
+        ST_RETURN_EXPR,
+        ST_WHILE_LOOP,
+        ST_FOR_LOOP,
+        ST_IF_ELSE_BLOCK
     };
 
     class statement {

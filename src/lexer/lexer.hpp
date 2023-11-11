@@ -71,6 +71,11 @@ namespace koala {
         TK_KEYWORD_MUT,
         TK_KEYWORD_LET,
         TK_KEYWORD_TYPEOF,
-        TK_KEYWORD_RETURN
+        TK_KEYWORD_RETURN,
+        TK_KEYWORD_WHILE,
+        TK_KEYWORD_FOR,
+        TK_KEYWORD_DO,
+        TK_KEYWORD_IF,
+        TK_KEYWORD_ELSE
     };
 }

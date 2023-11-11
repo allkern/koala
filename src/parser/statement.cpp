@@ -19,6 +19,10 @@ koala::statement* koala::parser::parse_statement() {
             stmt = parse_return_expr();
         } break;
 
+        case TK_KEYWORD_WHILE: {
+            stmt = parse_while_loop();
+        } break;
+
         case TK_KEYWORD_CONST: case TK_KEYWORD_STATIC:
         case TK_KEYWORD_MUT: case TK_KEYWORD_LET: {
             stmt = parse_variable_def();

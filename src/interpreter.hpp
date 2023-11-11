@@ -154,6 +154,7 @@ namespace koala {
         void execute_statement(assignment* a);
         void execute_statement(return_expr* re);
         void execute_statement(function_def* fd);
+        void execute_statement(while_loop* wl);
         bool execute_statement(statement* s);
         symbol* search_symbol(expression* expr);
         symbol* search_member(std::string name, struct_value* sv);
