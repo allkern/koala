@@ -199,16 +199,132 @@ int koala::lexer::lex_operator() {
     return type;
 }
 
+bool isliteral(char c) {
+    return isdigit(c) || (c == '\'');
+}
+
+int koala::lexer::lex_char() {
+    int c = 0;
+
+    if (m_c == '\\') {
+        next();
+
+        switch (m_c) {
+            case '0' : c = 0x00; next(); break;
+            case 'a' : c = 0x07; next(); break;
+            case 'b' : c = 0x08; next(); break;
+            case 'e' : c = 0x1b; next(); break;
+            case 'f' : c = 0x0c; next(); break;
+            case 'n' : c = 0x0a; next(); break;
+            case 'r' : c = 0x0d; next(); break;
+            case 't' : c = 0x09; next(); break;
+            case 'v' : c = 0x0b; next(); break;
+            case '?' : c = 0x3f; next(); break;
+            case '\\': c = 0x5c; next(); break;
+            case '\'': c = 0x27; next(); break;
+            case '\"': c = 0x22; next(); break;
+            case 'x' : {
+                std::string code;
+
+                next();
+
+                while (isxdigit(m_c))
+                    code.push_back(next());
+
+                c = std::stoul(code, nullptr, 16);
+            } break;
+        }
+    } else {
+        c = next();
+    }
+
+    return c;
+}
+
 int koala::lexer::lex_literal() {
     // To-do: Handle char literals, hexadecimal, octal, binary
-    if (!isdigit(m_c))
+    if (!isliteral(m_c))
         return TK_NONE;
     
     lexer_token& tk = push_token(TK_INTEGER);
 
-    while (isdigit(m_c))
-        tk.text.push_back(next());
-    
+    if (m_c == '\'') {
+        next();
+
+        int c = lex_char();
+
+        if (m_c != '\'')
+            return TK_ERROR;
+
+        next();
+
+        tk.text = std::to_string(c);
+
+        return TK_INTEGER;
+    }
+
+    switch (m_input->peek()) {
+        case 'x': {
+            tk.text = "0x";
+
+            next();
+            next();
+
+            while (isxdigit(m_c) || (m_c == '\'') || (m_c == '_')) {
+                if ((m_c == '\'') || (m_c == '_')) {
+                    next();
+
+                    continue;
+                }
+
+                tk.text.push_back(next());
+            }
+
+            tk.text = std::to_string(std::stoull(tk.text, nullptr, 0));
+        } break;
+
+        case 'o': {
+            tk.text = "0";
+
+            next();
+            next();
+
+            while (isdigit(m_c) || (m_c == '\'') || (m_c == '_')) {
+                if ((m_c == '\'') || (m_c == '_')) {
+                    next();
+
+                    continue;
+                }
+
+                tk.text.push_back(next());
+            }
+
+            tk.text = std::to_string(std::stoull(tk.text, nullptr, 0));
+        } break;
+
+        case 'b': {
+            next();
+            next();
+
+            while ((m_c == '0') || (m_c == '1') || (m_c == '\'') || (m_c == '_')) {
+                if ((m_c == '\'') || (m_c == '_')) {
+                    next();
+
+                    continue;
+                }
+
+                tk.text.push_back(next());
+            }
+
+            tk.text = std::to_string(std::stoull(tk.text, nullptr, 2));
+        } break;
+
+        default: {
+            while (isdigit(m_c))
+                tk.text.push_back(next());
+        } break;
+    }
+
     return TK_INTEGER;
 }
 
@@ -221,7 +337,7 @@ int koala::lexer::lex_string() {
     lexer_token& tk = push_token(TK_STRING);
 
     while (m_c != '\"')
-        tk.text.push_back(next());
+        tk.text.push_back(lex_char());
     
     next();
 

@@ -1,13 +1,3 @@
-fn foo(a: int) {
-    return a * a;
-}
-
-fn bar(a: int) {
-    let square = foo(a);
-
-    return square * a;
-}
-
 fn print(str: koala_string) {
     let ptr = str.ptr;
     mut i = 0;
@@ -22,5 +12,13 @@ fn print(str: koala_string) {
 }
 
 fn main(a: int, str: koala_string) {
-    return print("Hello, world!");
+    mut cnt = 10;
+
+    while (cnt) {
+        print("Hello, world!\n");
+
+        cnt -= 1;
+    }
+
+    return 0;
 }

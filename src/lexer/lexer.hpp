@@ -25,6 +25,7 @@ namespace koala {
         char next();
         void ignore_whitespace();
         lexer_token& push_token(int type);
+        int lex_char();
         int lex_ident();
         int lex_separator();
         int lex_operator();
