@@ -1,16 +1,17 @@
-fn print(str: koala_string) {
-    let ptr = str.ptr;
+fn puts(s: koala_string) {
     mut i = 0;
 
-    while (i != str.size) {
-        putchar(ptr[i++]);
+    while (i != s.size) {
+        putchar(s.ptr[i++]);
     }
 
-    return i;
+    putchar('\n');
+
+    return i + 1;
 }
 
-fn main(a: int, str: koala_string) {
-    print("Hello, world!\n");
+fn main() {
+    puts("Hello, world!\n");
 
     return 0;
 }

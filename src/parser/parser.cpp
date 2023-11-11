@@ -51,9 +51,9 @@ void koala::parser::parse() {
         m_ast.push_back(parse_statement());
     }
 
-    for (statement* s : m_ast) {
-        std::cout << s->print(0) << std::endl;
-    }
+    // for (statement* s : m_ast) {
+    //     std::cout << s->print(0) << std::endl;
+    // }
 }
 
 std::vector <koala::statement*>* koala::parser::get_ast() {

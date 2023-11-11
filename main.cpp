@@ -22,13 +22,13 @@ int main(int argc, const char* argv[]) {
     interpreter.init();
 
     koala::interpreter::value* return_value = interpreter.call_function(
-        "main",
-        {
-            interpreter.make_value(100),
-            interpreter.make_value("Hello, world!")
-        }
+        "main", {}
+        // {
+        //     interpreter.make_value(100),
+        //     interpreter.make_value("Hello, world!")
+        // }
     );
 
-    if (return_value)
-        printf("return_value=%s\n", return_value->str().c_str());
+    // if (return_value)
+    //     printf("return_value=%s\n", return_value->str().c_str());
 }
