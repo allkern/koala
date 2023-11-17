@@ -66,8 +66,8 @@ namespace koala {
 
         class value {
         public:
-            virtual int get_class();
-            virtual std::string str();
+            virtual int get_class() {}
+            virtual std::string str() {}
         };
 
         class integral_value : public value {
