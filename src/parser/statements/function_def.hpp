@@ -21,7 +21,7 @@ namespace koala {
         std::string name;
         type* return_type = nullptr;
         std::vector <function_arg> args;
-        std::vector <statement*> body;
+        statement* body;
 
         int get_tag() override {
             return ST_FUNCTION_DEF;
@@ -44,8 +44,7 @@ namespace koala {
 
             str += ") -> " + (return_type ? return_type->str() : "<auto>") + " {\n";
 
-            for (statement* s : body)
-                str += s->print(hierarchy + 1);
+            str += body->print(hierarchy + 1);
             
             str += std::string(4 * hierarchy, ' ') + "}\n";
 

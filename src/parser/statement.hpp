@@ -8,10 +8,12 @@ namespace koala {
         ST_VARIABLE_DEF,
         ST_STRUCT_DEF,
         ST_ASSIGNMENT,
+        ST_COMPOUND,
         ST_EXPRESSION,
         ST_RETURN_EXPR,
         ST_WHILE_LOOP,
         ST_FOR_LOOP,
+        ST_NULL,
         ST_IF_ELSE_BLOCK
     };
 

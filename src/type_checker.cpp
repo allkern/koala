@@ -367,8 +367,25 @@ void koala::type_checker::check_statement(koala::while_loop* wl) {
         std::exit(1);
     }
 
-    for (statement* s : wl->body)
+    check_statement(wl->body);
+}
+
+void koala::type_checker::check_statement(koala::compound* cs) {
+    for (statement* s : cs->body)
         check_statement(s);
+}
+
+void koala::type_checker::check_statement(koala::if_else* ie) {
+    if (get_type(ie->cond)->get_class() != TP_INTEGRAL) {
+        printf("Condition of if block is not an object of integral type\n");
+
+        std::exit(1);
+    }
+
+    check_statement(ie->if_path);
+
+    if (ie->else_path)
+        check_statement(ie->else_path);
 }
 
 void koala::type_checker::check_statement(koala::function_def* fd) {
@@ -395,8 +412,7 @@ void koala::type_checker::check_statement(koala::function_def* fd) {
 
     m_scope = 1;
 
-    for (statement* s : fd->body)
-        check_statement(s);
+    check_statement(fd->body);
 
     m_scope = 0;
 
@@ -422,12 +438,20 @@ void koala::type_checker::check_statement(koala::statement* s) {
             check_statement((return_expr*)s);
         } break;
 
+        case ST_COMPOUND: {
+            check_statement((compound*)s);
+        } break;
+
         case ST_EXPRESSION: {
             check_statement((expression_statement*)s);
         } break;
 
         case ST_WHILE_LOOP: {
             check_statement((while_loop*)s);
+        } break;
+
+        case ST_IF_ELSE_BLOCK: {
+            check_statement((if_else*)s);
         } break;
     }
 }

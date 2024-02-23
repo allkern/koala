@@ -13,11 +13,18 @@ int main(int argc, const char* argv[]) {
 
     koala::lexer lexer(file, path);
     koala::parser parser(lexer);
+
     koala::type_checker type_checker(parser);
     koala::interpreter interpreter(parser);
 
     lexer.lex();
     parser.parse();
+
+    for (koala::statement* s : *parser.get_ast()) {
+        if (s)
+            printf("%s\n", s->print(0).c_str());
+    }
+
     type_checker.check();
     interpreter.init();
 

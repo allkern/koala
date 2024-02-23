@@ -453,10 +453,37 @@ void koala::interpreter::execute_statement(while_loop* wl) {
     integral_value* iv = (integral_value*)cond_eval;
 
     while (iv->value) {
-        for (statement* s : wl->body)
-            execute_statement(s);
+        execute_statement(wl->body);
 
         iv = (integral_value*)evaluate_expression(wl->cond);
+    }
+}
+
+void koala::interpreter::execute_statement(compound* cs) {
+    for (statement* s : cs->body) {
+        execute_statement(s);
+
+        if (m_return_requested)
+            break;
+    }
+}
+
+void koala::interpreter::execute_statement(if_else* ie) {
+    value* cond_eval = evaluate_expression(ie->cond);
+
+    if (cond_eval->get_class() != TP_INTEGRAL) {
+        printf("if condition is not of integral type\n");
+
+        std::exit(1);
+    }
+
+    integral_value* iv = (integral_value*)cond_eval;
+
+    if (iv->value) {
+        execute_statement(ie->if_path);
+    } else {
+        if (ie->else_path)
+            execute_statement(ie->else_path);
     }
 }
 
@@ -467,6 +494,9 @@ void koala::interpreter::execute_statement(function_def* fd) {
 }
 
 bool koala::interpreter::execute_statement(statement* s) {
+    if (m_return_requested)
+        return false;
+
     switch (s->get_tag()) {
         case ST_VARIABLE_DEF: {
             execute_statement((variable_def*)s);
@@ -484,8 +514,20 @@ bool koala::interpreter::execute_statement(statement* s) {
             execute_statement((while_loop*)s);
         } break;
 
+        case ST_COMPOUND: {
+            execute_statement((compound*)s);
+
+            return m_return_requested;
+        } break;
+
+        case ST_IF_ELSE_BLOCK: {
+            execute_statement((if_else*)s);
+        } break;
+
         case ST_RETURN_EXPR: {
             execute_statement((return_expr*)s);
+
+            m_return_requested = true;
 
             return false;
         } break;
@@ -503,7 +545,7 @@ void koala::interpreter::init() {
     function_def* fd = new function_def();
 
     fd->args.push_back(function_arg { false, "c", m_ts->get_type("char") });
-    fd->body.clear();
+    fd->body = nullptr;
     fd->name = "putchar";
     fd->return_type = m_ts->get_type("char");
 
@@ -683,9 +725,9 @@ koala::interpreter::value* koala::interpreter::call_function(koala::function_def
 
     m_return_stack.push(nullptr);
 
-    for (statement* s : fd->body)
-        if (!execute_statement(s))
-            break;
+    execute_statement(fd->body);
+
+    m_return_requested = false;
 
     m_locals.pop();
 

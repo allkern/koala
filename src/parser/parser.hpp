@@ -18,11 +18,13 @@
 #include "expressions/array_access.hpp"
 #include "statement.hpp"
 #include "statements/expression_statement.hpp"
-#include "statements/assignment.hpp"
 #include "statements/function_def.hpp"
 #include "statements/variable_def.hpp"
 #include "statements/return_expr.hpp"
+#include "statements/assignment.hpp"
 #include "statements/while_loop.hpp"
+#include "statements/compound.hpp"
+#include "statements/if_else.hpp"
 
 #include "common.hpp"
 
@@ -44,6 +46,8 @@ namespace koala {
         statement* parse_variable_def();
         statement* parse_return_expr();
         statement* parse_while_loop();
+        statement* parse_compound();
+        statement* parse_if_else();
     
     public:
         parser(lexer& lexer) :

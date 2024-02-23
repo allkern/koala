@@ -14,7 +14,8 @@ namespace koala {
         TP_POINTER,
         TP_FUNCTION,
         TP_STRUCT,
-        TP_TYPEOF
+        TP_TYPEOF,
+        TP_ELLIPSIS
     };
 
     class type {
@@ -28,6 +29,11 @@ namespace koala {
         virtual int get_class() = 0;
         virtual int get_size() = 0;
         virtual std::string str() = 0;
+    };
+
+    // To-do: Ellipsis for function arg types
+    class ellipsis_type : public type {
+    public:
     };
 
     class integral_type : public type {

@@ -37,6 +37,8 @@ namespace koala {
         void check_statement(return_expr* re);
         void check_statement(function_def* fd);
         void check_statement(while_loop* wl);
+        void check_statement(compound* cs);
+        void check_statement(if_else* ie);
         void check_statement(statement* s);
 
     public:

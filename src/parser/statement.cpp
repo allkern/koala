@@ -6,6 +6,7 @@
 #include "statements/variable_def.hpp"
 #include "statements/return_expr.hpp"
 #include "statements/assignment.hpp"
+#include "statements/compound.hpp"
 
 koala::statement* koala::parser::parse_statement() {
     statement* stmt = nullptr;
@@ -21,6 +22,14 @@ koala::statement* koala::parser::parse_statement() {
 
         case TK_KEYWORD_WHILE: {
             stmt = parse_while_loop();
+        } break;
+
+        case TK_KEYWORD_IF: {
+            stmt = parse_if_else();
+        } break;
+
+        case TK_OPENING_BRACE: {
+            stmt = parse_compound();
         } break;
 
         case TK_KEYWORD_CONST: case TK_KEYWORD_STATIC:
@@ -41,6 +50,12 @@ koala::statement* koala::parser::parse_statement() {
 
         case TK_SEMICOLON: {
             m_current = m_lexer->pop();
+        } break;
+
+        default: {
+            printf("Unknown token \'%s\'\n", m_current.text.c_str());
+
+            std::exit(1);
         } break;
     }
 

@@ -70,22 +70,7 @@ koala::statement* koala::parser::parse_function_def() {
         fd.return_type = parse_type();
     }
 
-    if (m_current.type != TK_OPENING_BRACE) {
-        printf("Expected \'{\' after function definition\n");
-
-        std::exit(1);
-    }
-
-    m_current = m_lexer->pop();
-
-    while (m_current.type != TK_CLOSING_BRACE) {
-        statement* stmt = parse_statement();
-
-        if (stmt)
-            fd.body.push_back(stmt);
-    }
-
-    m_current = m_lexer->pop();
+    fd.body = parse_statement();
 
     return new function_def(fd);
 }

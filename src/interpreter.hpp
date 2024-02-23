@@ -140,6 +140,7 @@ namespace koala {
         std::stack <std::vector <symbol>>   m_locals;
         std::vector <symbol>                m_globals;
         std::stack <value*>                 m_return_stack;
+        bool                                m_return_requested = false;
 
         value* get_default_value(type* t);
         value* evaluate_expression(function_call* fc);
@@ -157,6 +158,8 @@ namespace koala {
         void execute_statement(return_expr* re);
         void execute_statement(function_def* fd);
         void execute_statement(while_loop* wl);
+        void execute_statement(compound* cs);
+        void execute_statement(if_else* ie);
         bool execute_statement(statement* s);
         symbol* search_symbol(expression* expr);
         symbol* search_member(std::string name, struct_value* sv);
